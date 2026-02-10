@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intellidbgkit/contracts/hlapi-discovery.schema.json",
+  "title": "HLAPIDiscoveryRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "discovery_id",
+    "run_id",
+    "target_id",
+    "collected_at",
+    "collector",
+    "object_path",
+    "access_mode",
+    "probe_command",
+    "support_state"
+  ],
+  "properties": {
+    "discovery_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collector": {
+      "type": "string",
+      "enum": [
+        "tracezone",
+        "uart",
+        "gdb",
+        "ebpf",
+        "ubus-cli"
+      ]
+    },
+    "object_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parameter_name": {
+      "type": "string"
+    },
+    "access_mode": {
+      "type": "string",
+      "enum": [
+        "read",
+        "write",
+        "rw"
+      ]
+    },
+    "probe_command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed_value": {
+      "type": "string"
+    },
+    "support_state": {
+      "type": "string",
+      "enum": [
+        "supported",
+        "partial",
+        "not-supported",
+        "unknown"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
