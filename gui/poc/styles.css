@@ -3,6 +3,7 @@
   --bg: #11151c;
   --surface: #1e2732;
   --surface-2: #273444;
+  --surface-3: #131c27;
   --text: #dce6f0;
   --text-dim: #9fb0c3;
   --accent: #44c2ff;
@@ -48,10 +49,10 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .controls-wrap {
-  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
@@ -67,15 +68,7 @@ body {
   min-width: 220px;
 }
 
-.ctl input {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 13px;
-}
-
+.ctl input,
 .controls button,
 .controls select {
   border: 1px solid var(--border);
@@ -87,10 +80,24 @@ body {
   cursor: pointer;
 }
 
-.subbar {
+.advanced-controls {
   border-bottom: 1px solid var(--border);
+  background: #18212d;
   padding: 8px 18px;
-  background: #1a232e;
+}
+
+.advanced-controls details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #1b2531;
+}
+
+.advanced-controls summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #bdd0e3;
+  margin-bottom: 8px;
 }
 
 .stats {
@@ -98,107 +105,165 @@ body {
   color: var(--text-dim);
 }
 
-.context-board {
-  border-bottom: 1px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 10px;
-  background: #131c27;
-}
-
-.context-box {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #192331;
-  padding: 10px;
-  min-height: 180px;
-}
-
-.context-box h2 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-}
-
-.context-meta {
-  font-size: 12px;
-  line-height: 1.5;
-  color: #b9cadb;
-}
-
-.context-meta .mono {
-  color: #deefff;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #4d637a;
-  border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 11px;
-  background: #203246;
-  color: #d7e7f7;
-}
-
-.outline {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.outline-line {
-  border: 1px solid #4d637a;
-  border-radius: 6px;
-  padding: 6px 8px;
-  background: #1f2d3f;
-}
-
-.outline details {
-  border: 1px solid #5b6f86;
-  border-radius: 6px;
-  background: #202f42;
-  padding: 4px 6px;
-}
-
-.outline summary {
-  cursor: pointer;
-  color: #b8dcff;
-  font-size: 12px;
-}
-
-.outline-child {
-  margin-top: 4px;
-  padding-left: 8px;
-  border-left: 2px solid #3a526b;
-}
-
 .layout {
   display: grid;
-  grid-template-columns: 29% 42% 29%;
-  min-height: calc(100vh - 337px);
+  grid-template-columns: minmax(0, 1fr) 360px;
+  min-height: calc(100vh - 140px);
 }
 
 .panel {
-  border-right: 1px solid var(--border);
   padding: 12px;
   overflow: auto;
-}
-
-.panel:last-child {
-  border-right: none;
 }
 
 .panel h2 {
   margin: 0 0 10px 0;
   font-size: 15px;
+}
+
+.panel-main {
+  border-right: 1px solid var(--border);
+}
+
+.panel-side {
+  background: var(--surface-3);
+}
+
+.side-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #192331;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.side-card summary {
+  cursor: pointer;
+  color: #cfe0f2;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.mindmap {
+  width: 100%;
+  min-height: 620px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #121a24;
+  padding: 10px;
+  overflow: auto;
+}
+
+.mindmap-board {
+  position: relative;
+  min-height: 598px;
+}
+
+.mind-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  /* 線層需在 block 上方，避免被內容背景遮住而視覺上像「斷線」。 */
+  z-index: 4;
+}
+
+.mind-block {
+  position: absolute;
+  width: fit-content;
+  min-width: 0;
+  max-width: 560px;
+  border: 1px solid #4d637a;
+  border-radius: 10px;
+  background: #1f2d3f;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.24);
+  z-index: 2;
+  overflow: auto;
+}
+
+.mind-block h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #d5e7f9;
+  line-height: 1.35;
+}
+
+.mind-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: grab;
+  user-select: none;
+}
+
+.mindmap.dragging .mind-block-header {
+  cursor: grabbing;
+}
+
+.mind-collapse-btn {
+  border: 1px solid #4d637a;
+  border-radius: 6px;
+  background: #2a3a4e;
+  color: #d8e9fb;
+  font-size: 14px;
+  line-height: 1;
+  min-width: 24px;
+  min-height: 22px;
+  cursor: pointer;
+}
+
+.mind-block ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.mind-block li {
+  font-size: 12px;
+  color: #b9ccdf;
+  line-height: 1.3;
+}
+
+.mind-item-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #4d637a;
+  border-radius: 6px;
+  background: #273a50;
+  color: #dceeff;
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mind-item-btn.expanded {
+  border-color: #66d2ff;
+  background: #2d4761;
+}
+
+.mind-item-text {
+  display: block;
+  border: 1px solid #3e556c;
+  border-radius: 6px;
+  background: #1a2735;
+  color: #c5d9eb;
+  padding: 5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mind-block.root {
+  border-color: #66d2ff;
+  background: #24425f;
 }
 
 .timeline {
@@ -208,6 +273,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 7px;
+  max-height: 480px;
+  overflow: auto;
 }
 
 .timeline-btn {
@@ -241,14 +308,6 @@ body {
 .timeline-btn.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px rgba(68, 194, 255, 0.35) inset;
-}
-
-.graph {
-  width: 100%;
-  height: 500px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #121a24;
 }
 
 .hint {
@@ -287,22 +346,30 @@ body {
   color: #d9f2ff;
 }
 
-@media (max-width: 1220px) {
+@media (max-width: 1380px) {
   .topbar {
     flex-direction: column;
   }
+
   .controls-wrap {
     justify-content: flex-start;
   }
-  .context-board {
-    grid-template-columns: 1fr;
-  }
+
   .layout {
     grid-template-columns: 1fr;
     min-height: auto;
   }
-  .panel {
+
+  .panel-main {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .mindmap {
+    min-height: auto;
+  }
+
+  .mindmap-board {
+    min-height: 598px;
   }
 }

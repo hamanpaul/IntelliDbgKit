@@ -23,7 +23,16 @@
       "path": "WiFi.AccessPoint.6.Security.EncryptionMode",
       "odl_file": "/home/paul_chen/arc_prj/att-prpl/targets/968375GWO_WL25DX_WLMLO_OPENWRT_PRPL_FASTMCASTD/fs/etc/amx/wld/wld_accesspoint.odl",
       "odl_line": 690,
+      "odl_entry_line": 541,
       "object_scope": "Security",
+      "entry_function": "wld_ap_validateSecurity_ovf",
+      "source_mapping": {
+        "compile_command_file": "ApMgt/wld_ap_security.c",
+        "compile_command_directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src",
+        "source_file": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src/ApMgt/wld_ap_security.c",
+        "source_entry_line": 118,
+        "source_function": "_wld_ap_validateSecurity_ovf"
+      },
       "siblings": [
         "ModesSupported",
         "ModesAvailable",
@@ -47,7 +56,77 @@
         "ModeEnabled",
         "MFPConfig",
         "SPPAmsdu"
-      ]
+      ],
+      "source_outline": [
+        {
+          "kind": "statement",
+          "text": "swla_object_paramsToMap(&params, object);"
+        },
+        {
+          "kind": "statement",
+          "text": "modesAvailableMask = s_getFinalModesAvailable(modesSupportedMask, modesAvailableMask);"
+        },
+        {
+          "kind": "statement",
+          "text": "modeEnabledId = s_getFinalModeEnabled(modesAvailableMask, modeEnabledId);"
+        },
+        {
+          "kind": "statement",
+          "text": "switch(modeEnabledId) { ... key/radius validation ... }"
+        },
+        {
+          "kind": "statement",
+          "text": "return (valid ? amxd_status_ok : amxd_status_invalid_value);"
+        }
+      ],
+      "sibling_functions": [
+        {
+          "name": "s_setCommonSecurityConf_ocf",
+          "line": 461,
+          "outline": [
+            {
+              "kind": "loop",
+              "text": "amxc_var_for_each(newValue, newParamValues)",
+              "children": [
+                "pname = amxc_var_key(newValue);",
+                "if(swl_str_matches(pname, \"MFPConfig\")) { ... }",
+                "if(swl_str_matches(pname, \"EncryptionMode\")) { ... }",
+                "needSyncSec = true;"
+              ]
+            },
+            {
+              "kind": "statement",
+              "text": "if(needSyncSec) { wld_ap_sec_doSync(pAP); }"
+            }
+          ]
+        },
+        {
+          "name": "s_setModeEnabled_pwf",
+          "line": 323,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "finalModeId = s_getFinalModeEnabled(pAP->secModesAvailable, modeId);"
+            },
+            {
+              "kind": "statement",
+              "text": "pAP->secModeEnabled = finalModeId;"
+            },
+            {
+              "kind": "statement",
+              "text": "wld_ap_sec_doSync(pAP);"
+            }
+          ]
+        }
+      ],
+      "legacy_sample": {
+        "odl_entry": "Security{ on action validate call wld_ap_validateSecurity_ovf; }",
+        "snippet": [
+          "SWLA_DM_PARAM_HDLR(\"ModesAvailable\", s_setModesAvailable_pwf)",
+          "SWLA_DM_PARAM_HDLR(\"ModeEnabled\", s_setModeEnabled_pwf)",
+          ".objChangedCb = s_setCommonSecurityConf_ocf"
+        ]
+      }
     },
     {
       "path": "WiFi.Radio.{i}.getRadioStats().BytesReceived",

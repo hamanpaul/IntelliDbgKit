@@ -18,27 +18,9 @@
         <select id="runSelect" aria-label="run select"></select>
       </label>
       <label class="ctl">
-        <span>Phase</span>
-        <select id="phaseSelect" aria-label="phase select">
-          <option value="ALL">ALL</option>
-        </select>
+        <span>HLAPI Path</span>
+        <select id="pathSelect" aria-label="hlapi path select"></select>
       </label>
-      <label class="ctl">
-        <span>Tool</span>
-        <select id="toolSelect" aria-label="tool select">
-          <option value="ALL">ALL</option>
-        </select>
-      </label>
-      <label class="ctl ctl-wide">
-        <span>Keyword</span>
-        <input id="searchInput" type="text" placeholder="symbol / title / evidence">
-      </label>
-      <button id="applyFilterBtn" type="button">Apply</button>
-    </div>
-  </header>
-
-  <section class="subbar">
-    <div class="controls">
       <button id="prevBtn" type="button">Prev</button>
       <button id="playBtn" type="button">Play</button>
       <button id="nextBtn" type="button">Next</button>
@@ -49,46 +31,50 @@
       </select>
       <span id="timelineStats" class="stats"></span>
     </div>
-  </section>
+  </header>
 
-  <section class="context-board">
-    <section class="context-box">
-      <h2>HLAPI Path</h2>
-      <label class="ctl">
-        <span>Path Selector</span>
-        <select id="pathSelect" aria-label="hlapi path select"></select>
-      </label>
-      <div id="pathMeta" class="context-meta"></div>
-    </section>
-    <section class="context-box">
-      <h2>Sibling HLAPI</h2>
-      <div id="siblingList" class="chips"></div>
-    </section>
-    <section class="context-box">
-      <h2>ODL / LSP Context</h2>
-      <div id="odlContext" class="context-meta"></div>
-    </section>
-    <section class="context-box">
-      <h2>Source Outline</h2>
-      <div id="sourceOutline" class="outline"></div>
-    </section>
+  <section class="advanced-controls">
+    <details>
+      <summary>Advanced Filters</summary>
+      <div class="controls">
+        <label class="ctl">
+          <span>Phase</span>
+          <select id="phaseSelect" aria-label="phase select">
+            <option value="ALL">ALL</option>
+          </select>
+        </label>
+        <label class="ctl">
+          <span>Tool</span>
+          <select id="toolSelect" aria-label="tool select">
+            <option value="ALL">ALL</option>
+          </select>
+        </label>
+        <label class="ctl ctl-wide">
+          <span>Keyword</span>
+          <input id="searchInput" type="text" placeholder="symbol / title / evidence">
+        </label>
+        <button id="applyFilterBtn" type="button">Apply</button>
+      </div>
+    </details>
   </section>
 
   <main class="layout">
-    <section class="panel">
-      <h2>Timeline Replay</h2>
-      <ul id="timeline" class="timeline"></ul>
-    </section>
-
-    <section class="panel">
-      <h2>Core Block Flow</h2>
-      <svg id="graph" class="graph" viewBox="0 0 760 500" role="img" aria-label="flow graph"></svg>
+    <section class="panel panel-main">
+      <h2>Core Block Flow（Mind List）</h2>
+      <div id="graph" class="mindmap" role="img" aria-label="mind list graph"></div>
       <p id="graphHint" class="hint"></p>
     </section>
 
-    <section class="panel">
-      <h2>Drilldown</h2>
-      <div id="details" class="details"></div>
+    <section class="panel panel-side">
+      <details class="side-card" open>
+        <summary>Timeline Replay</summary>
+        <ul id="timeline" class="timeline"></ul>
+      </details>
+
+      <details class="side-card">
+        <summary>Drilldown</summary>
+        <div id="details" class="details"></div>
+      </details>
     </section>
   </main>
 

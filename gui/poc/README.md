@@ -12,12 +12,17 @@ make ui-poc
 ## POC 範圍
 
 - Run 切換（`runs.json`）
-- Timeline replay（phase/tool/keyword filter）
-- Core block flow highlight
+- HLAPI Path 切換（`path_contexts`）
+- Core block flow mind-list（可折疊階層、父子連線）
+- 點 list item（如 `ModesSupported`）可展開新 block，再點一次收折
+- 每個 block 可由標題列拖曳自由定位
+- 拖曳時自動避免 block 互相重疊
+- 拖曳改為整個 block 可抓取（功能按鈕除外）
+- 連線錨點對齊展開來源項目與子 block 標題
 - Node drilldown（顯示關聯 events）
-- Event detail + evidence 顯示
-- HLAPI Context Layer（同階 HLAPI、ODL 入口、source outline）
-- Loop 折疊展開（`details/summary`）
+- Timeline replay（側欄收合）
+- Event detail + evidence（側欄收合）
+- Advanced filters（`phase/tool/keyword` 預設收合）
 
 ## Mock Data
 
