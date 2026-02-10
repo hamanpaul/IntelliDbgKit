@@ -8,18 +8,30 @@
 ## Format: `[ID] [P?] [Domain] Description`
 
 - **[P]**: 可平行執行。
-- **[Domain]**: `CORE/MEM/COMP/WF/AGENT/GUI/HLAPI/CI`。
+- **[Domain]**: `BOOT/CORE/MEM/COMP/WF/AGENT/GUI/HLAPI/CI`。
+
+---
+
+## Phase 0: Repository Bootstrap
+
+- [x] T000 [BOOT] 建立 `src/`, `tests/`, `gui/` 基本目錄。
+- [x] T000A [BOOT] 建立 Python 測試最小框架（`unittest` 可執行）。
+- [x] T000B [BOOT] 匯入 `contracts/*.json` 驗證測試骨架。
+- [x] T000C [BOOT] 建立開發用 `Makefile` 或等價命令入口。
+- [ ] T000D [P] [BOOT] CI 加入 contract/schema syntax 檢查。
+
+**Checkpoint**: 可在空實作狀態執行最小測試與 schema 驗證。
 
 ---
 
 ## Phase 1: PI Core Boundary
 
-- [ ] T001 [CORE] 建立 PI core 目錄與邊界守衛：`src/core/`
-- [ ] T002 [CORE] 實作 `state_machine.py` 與轉移審計。
-- [ ] T003 [CORE] 實作 `event_bus.py` 與 schema 驗證入口。
-- [ ] T004 [CORE] 實作 `veto_gate.py` 基礎判斷器。
-- [ ] T005 [P] [CORE] Contract test：`tests/contract/test_event_schema.py`
-- [ ] T006 [P] [CORE] Integration test：`tests/integration/test_core_boundary_guard.py`
+- [x] T001 [CORE] 建立 PI core 目錄與邊界守衛：`src/core/`
+- [x] T002 [CORE] 實作 `state_machine.py` 與轉移審計。
+- [x] T003 [CORE] 實作 `event_bus.py` 與 schema 驗證入口。
+- [x] T004 [CORE] 實作 `veto_gate.py` 基礎判斷器。
+- [x] T005 [P] [CORE] Contract test：`tests/contract/test_event_schema.py`
+- [x] T006 [P] [CORE] Integration test：`tests/integration/test_core_boundary_guard.py`
 
 **Checkpoint**: 插件不能直接寫入 core state。
 
@@ -76,10 +88,10 @@
 ## Phase 6: Debug Stack and HLAPI Ingestion
 
 - [ ] T027 [HLAPI] TraceZone/UART/GDB/eBPF collector 接入。
-- [ ] T028 [HLAPI] `xlsx_loader.py` 與 `hlapi_writer.py` 正規化匯入。
-- [ ] T029 [HLAPI] HLAPI discovery 最小原型接入。
-- [ ] T030 [P] [HLAPI] Unit test：`tests/unit/test_xlsx_to_markdown_mapping.py`
-- [ ] T031 [P] [HLAPI] Integration test：`tests/integration/test_hlapi_discovery_minimal.py`
+- [x] T028 [HLAPI] `xlsx_loader.py` 與 `hlapi_writer.py` 正規化匯入。
+- [x] T029 [HLAPI] HLAPI discovery 最小原型接入。
+- [x] T030 [P] [HLAPI] Unit test：`tests/unit/test_xlsx_to_markdown_mapping.py`
+- [x] T031 [P] [HLAPI] Integration test：`tests/integration/test_hlapi_discovery_minimal.py`
 
 **Checkpoint**: `QoS_LLAPI` 起各 sheet 可完整匯入並保留 lineage。
 
@@ -90,6 +102,11 @@
 - [ ] T032 [GUI] 實作 timeline feed API。
 - [ ] T033 [GUI] 實作 graph/drilldown API。
 - [ ] T034 [GUI] GUI 顯示 HLAPI->LLAPI->TraceZone flow。
+- [x] T032A [GUI] POC: timeline feed mock API：`gui/poc/mock-api.js`
+- [x] T033A [GUI] POC: graph/drilldown mock API：`gui/poc/app.js`
+- [x] T034A [GUI] POC: HLAPI->LLAPI->Trace flow 回放：`gui/poc/index.html`
+- [x] T034B [GUI] POC: HLAPI 同階欄位展開（Security siblings）：`gui/poc/mock-data/hlapi-context.json`
+- [x] T034C [GUI] POC: ODL->source 同級語句與 loop 折疊：`gui/poc/app.js`
 - [ ] T035 [P] [GUI] Integration test：`gui/tests/timeline_replay.spec.ts`
 - [ ] T036 [P] [GUI] Integration test：`gui/tests/node_drilldown.spec.ts`
 
@@ -110,8 +127,16 @@
 
 ## Dependencies and Execution Order
 
-1. Phase 1 完成前，不可開始其他 phase。
-2. Phase 2 與 Phase 3 可平行，但 Phase 4 需依賴兩者。
-3. Phase 5 依賴 Phase 1 + Phase 4。
-4. Phase 6 依賴 Phase 1；Phase 7 依賴 Phase 1 + Phase 6。
-5. Phase 8 依賴 Phase 5 + Phase 6。
+1. Phase 0 完成前，不可開始其他 phase。
+2. Phase 1 完成前，不可開始 Phase 4~8。
+3. Phase 2 與 Phase 3 可平行，但 Phase 4 需依賴兩者。
+4. Phase 5 依賴 Phase 1 + Phase 4。
+5. Phase 6 依賴 Phase 1；Phase 7 依賴 Phase 1 + Phase 6。
+6. Phase 8 依賴 Phase 5 + Phase 6。
+
+## Current Sprint (Start Now)
+
+- [ ] S1-1 完成 T000~T000D（bootstrap 與測試骨架）。
+- [x] S1-2 完成 T001、T003（core boundary + event bus 最小實作）。
+- [x] S1-3 完成 T005、T006（contract + boundary integration tests）。
+- [ ] S1-4 產出第一版 run artifact（最小 `TraceEvent` 流）。

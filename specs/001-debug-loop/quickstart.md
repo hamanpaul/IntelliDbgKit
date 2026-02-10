@@ -32,8 +32,8 @@ Expected:
 ## 4) Import HLAPI Baseline
 
 ```bash
-idk ingest hlapi-xlsx \
-  --source docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx \
+python3 -m src.cli.commands.hlapi_ingest \
+  --source /home/paul_chen/IntelliDbgKit/docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx \
   --start-sheet QoS_LLAPI \
   --project "$IDK_PROJECT" \
   --vault "$IDK_VAULT"
@@ -43,6 +43,16 @@ Expected:
 
 - testcase notes + lineage index
 - source row 保留
+
+## 4.1) Minimal HLAPI Discovery Prototype
+
+```bash
+python3 -m src.cli.commands.hlapi_discovery \
+  --run-id run-sample \
+  --target-id "$IDK_TARGET" \
+  --input /tmp/idk-discovery-input.txt \
+  --output /tmp/idk-discovery-output.json
+```
 
 ## 5) Run Skill Workflows
 

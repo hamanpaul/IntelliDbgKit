@@ -14,7 +14,7 @@ GUI/CLI 同步使用同一事件與證據模型，CI 僅輸出 evidence bundle �
 **Language/Version**: Python 3.12（core/orchestrator/plugins）、TypeScript（GUI）  
 **Primary Dependencies**: serialwrap, ubus-cli, gdb, bpftrace/libbpf, cscope/LSP backend, Copilot SDK  
 **Storage**: Obsidian vault markdown + JSON index + JSONL raw events + Parquet aggregates  
-**Testing**: pytest + schema contract + replay consistency + compression round-trip tests  
+**Testing**: unittest + schema contract + replay consistency + compression round-trip tests  
 **Target Platform**: Host（Ubuntu/WSL）+ Target（prplOS/OpenWrt）  
 **Project Type**: CLI + GUI + Plugin + Workflow Runtime（single repository）  
 **Performance Goals**: 單次 P1 閉環 15 分鐘內；GUI 下鑽回應 < 2 秒  

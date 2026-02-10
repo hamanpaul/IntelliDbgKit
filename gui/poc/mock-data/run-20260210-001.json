@@ -1,0 +1,123 @@
+{
+  "run": {
+    "run_id": "run-20260210-001",
+    "target_id": "board-prplos-01",
+    "summary": "WiFi radio sync path repro confirmed, patch proposal generated.",
+    "consensus_state": "pass",
+    "veto_count": 1
+  },
+  "nodes": [
+    { "id": "HLAPI", "label": "HLAPI Cmd", "x": 80, "y": 90, "type": "entry" },
+    { "id": "LLAPI", "label": "LLAPI Adapter", "x": 260, "y": 90, "type": "core" },
+    { "id": "TZ", "label": "TraceZone", "x": 460, "y": 90, "type": "collector" },
+    { "id": "GDB", "label": "GDB Symbol", "x": 650, "y": 90, "type": "collector" },
+    { "id": "EVT", "label": "Event Bus", "x": 260, "y": 240, "type": "core" },
+    { "id": "CNS", "label": "Consensus", "x": 460, "y": 240, "type": "core" },
+    { "id": "OBS", "label": "Obsidian Note", "x": 650, "y": 240, "type": "knowledge" },
+    { "id": "PATCH", "label": "Patch Proposal", "x": 460, "y": 390, "type": "delivery" }
+  ],
+  "edges": [
+    ["HLAPI", "LLAPI"],
+    ["LLAPI", "TZ"],
+    ["TZ", "GDB"],
+    ["LLAPI", "EVT"],
+    ["TZ", "EVT"],
+    ["GDB", "CNS"],
+    ["EVT", "CNS"],
+    ["CNS", "OBS"],
+    ["CNS", "PATCH"]
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "time": "10:00:01",
+      "phase": "TEST_LOOP",
+      "tool": "ubus-cli",
+      "title": "HLAPI read Device.WiFi.Radio.1.Channel",
+      "status": "ok",
+      "flow": ["HLAPI", "LLAPI", "EVT"],
+      "symbol": "wld_rad_doSync",
+      "address": "0x7f0011c0",
+      "evidence": ["uart-log-14", "tracezone-3"],
+      "consensus": "pending"
+    },
+    {
+      "id": "e2",
+      "time": "10:00:02",
+      "phase": "DEBUG_ON",
+      "tool": "tracezone",
+      "title": "TraceZone capture radio sync",
+      "status": "ok",
+      "flow": ["LLAPI", "TZ", "EVT"],
+      "symbol": "whm_brcm_rad_sync",
+      "address": "0x7f0014e8",
+      "evidence": ["tracezone-4", "tracezone-5"],
+      "consensus": "pending"
+    },
+    {
+      "id": "e3",
+      "time": "10:00:04",
+      "phase": "ANALYZE",
+      "tool": "gdb",
+      "title": "Resolve function symbol and callsite",
+      "status": "ok",
+      "flow": ["TZ", "GDB", "CNS"],
+      "symbol": "nl80211_mfn_wrad_sync",
+      "address": "0x7f10b2aa",
+      "evidence": ["gdb-bt-1", "mapshow-2"],
+      "consensus": "pending"
+    },
+    {
+      "id": "e4",
+      "time": "10:00:06",
+      "phase": "ANALYZE",
+      "tool": "agent-dispatch",
+      "title": "Multi-agent compare root-cause hypothesis",
+      "status": "warn",
+      "flow": ["EVT", "CNS"],
+      "symbol": "consensus.evaluate",
+      "address": "0x7f12ca11",
+      "evidence": ["agent-codex-7", "agent-copilot-4", "agent-gemini-3"],
+      "consensus": "veto"
+    },
+    {
+      "id": "e5",
+      "time": "10:00:09",
+      "phase": "REPRO_TRACE",
+      "tool": "tracezone",
+      "title": "Repro run #2 aligns with previous flow",
+      "status": "ok",
+      "flow": ["LLAPI", "TZ", "EVT", "CNS"],
+      "symbol": "wld_nl80211_sync",
+      "address": "0x7f102bce",
+      "evidence": ["tracezone-11", "tracezone-12"],
+      "consensus": "pass"
+    },
+    {
+      "id": "e6",
+      "time": "10:00:11",
+      "phase": "REPORT",
+      "tool": "knowledge-writer",
+      "title": "Write root-cause card to Obsidian",
+      "status": "ok",
+      "flow": ["CNS", "OBS"],
+      "symbol": "memory.promote",
+      "address": "0x7f11af20",
+      "evidence": ["obs-card-221"],
+      "consensus": "pass"
+    },
+    {
+      "id": "e7",
+      "time": "10:00:13",
+      "phase": "REPORT",
+      "tool": "patch-engine",
+      "title": "Generate patch proposal (manual review)",
+      "status": "ok",
+      "flow": ["CNS", "PATCH"],
+      "symbol": "patch.propose",
+      "address": "0x7f16fe55",
+      "evidence": ["patch-proposal-17"],
+      "consensus": "pass"
+    }
+  ]
+}

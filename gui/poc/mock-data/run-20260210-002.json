@@ -1,0 +1,83 @@
+{
+  "run": {
+    "run_id": "run-20260210-002",
+    "target_id": "board-prplos-02",
+    "summary": "Intermittent veto due to missing eBPF evidence; requires extra observation.",
+    "consensus_state": "veto",
+    "veto_count": 2
+  },
+  "nodes": [
+    { "id": "HLAPI", "label": "HLAPI Cmd", "x": 90, "y": 90, "type": "entry" },
+    { "id": "LLAPI", "label": "LLAPI Adapter", "x": 270, "y": 90, "type": "core" },
+    { "id": "TZ", "label": "TraceZone", "x": 450, "y": 90, "type": "collector" },
+    { "id": "EBPF", "label": "eBPF Probe", "x": 630, "y": 90, "type": "collector" },
+    { "id": "EVT", "label": "Event Bus", "x": 270, "y": 240, "type": "core" },
+    { "id": "CNS", "label": "Consensus", "x": 450, "y": 240, "type": "core" },
+    { "id": "OBS", "label": "Obsidian Note", "x": 630, "y": 240, "type": "knowledge" },
+    { "id": "ACTION", "label": "Observe More", "x": 450, "y": 390, "type": "delivery" }
+  ],
+  "edges": [
+    ["HLAPI", "LLAPI"],
+    ["LLAPI", "TZ"],
+    ["TZ", "EVT"],
+    ["TZ", "EBPF"],
+    ["EBPF", "CNS"],
+    ["EVT", "CNS"],
+    ["CNS", "OBS"],
+    ["CNS", "ACTION"]
+  ],
+  "events": [
+    {
+      "id": "f1",
+      "time": "13:20:02",
+      "phase": "TEST_LOOP",
+      "tool": "ubus-cli",
+      "title": "HLAPI write Device.WiFi.Radio.2.Channel",
+      "status": "ok",
+      "flow": ["HLAPI", "LLAPI", "TZ", "EVT"],
+      "symbol": "wld_rad_setChannel",
+      "address": "0x7f2011c0",
+      "evidence": ["uart-log-88", "tracezone-31"],
+      "consensus": "pending"
+    },
+    {
+      "id": "f2",
+      "time": "13:20:05",
+      "phase": "DEBUG_ON",
+      "tool": "ebpf",
+      "title": "Attach kprobe fails on target kernel",
+      "status": "error",
+      "flow": ["TZ", "EBPF"],
+      "symbol": "probe.attach",
+      "address": "0x00000000",
+      "evidence": ["ebpf-log-12"],
+      "consensus": "pending"
+    },
+    {
+      "id": "f3",
+      "time": "13:20:08",
+      "phase": "ANALYZE",
+      "tool": "agent-dispatch",
+      "title": "Consensus veto, request extra tracezone window",
+      "status": "warn",
+      "flow": ["EVT", "CNS", "ACTION"],
+      "symbol": "consensus.veto",
+      "address": "0x7f22aa10",
+      "evidence": ["agent-codex-11", "agent-copilot-9"],
+      "consensus": "veto"
+    },
+    {
+      "id": "f4",
+      "time": "13:20:11",
+      "phase": "REPORT",
+      "tool": "knowledge-writer",
+      "title": "Write observe-more card to Obsidian",
+      "status": "ok",
+      "flow": ["CNS", "OBS"],
+      "symbol": "note.observe_more",
+      "address": "0x7f211000",
+      "evidence": ["obs-card-387"],
+      "consensus": "veto"
+    }
+  ]
+}
