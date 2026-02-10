@@ -67,6 +67,21 @@ speckit 規劃的工具能力被封裝為可調度 skill/workflow，透過核心
 
 ---
 
+### User Story 4A - ToolCard 命令導引與介接一致性 (Priority: P1)
+
+開發者與 Agent 可透過統一 `description + examples + help` 方式理解與調用工具，且工具差異由 wrapper/adaptor 吸收。
+
+**Why this priority**: 工具介接不一致會直接破壞閉環自動化與可維護性。
+
+**Independent Test**: 任一註冊工具都能由 `idk tools` 查詢說明、範例與健康狀態，並由 workflow 以統一格式調度。
+
+**Acceptance Scenarios**:
+
+1. **Given** 工具已註冊 ToolCard，**When** 執行 `idk tools show <tool_id>`，**Then** 回傳 description/examples/help 與 I/O 契約。
+2. **Given** 底層工具參數格式不同，**When** 經 wrapper 調用，**Then** 上層收到一致 `ExecResult`。
+
+---
+
 ### User Story 5 - 多 Agent 共識與否決 (Priority: P2)
 
 主控代理平行調度多代理分析，遇到關鍵證據不足時必須否決，不可強行輸出結論。
@@ -103,6 +118,7 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - 某 target 不支援 eBPF，流程需自動降級到 TraceZone + GDB + UART。
 - 事件壓縮後語意歧義，必須回退到上一壓縮層再分析。
 - 同名 command 在不同 provider 參數衝突，需靠 adapter 映射處理。
+- 工具存在但 `help` 不可用或回傳非預期格式，需標記 degraded 並禁止自動調度。
 - 多代理全數低信心或互斥，系統需標記未收斂而非輸出假結論。
 - 匯入測試資料含敏感字串時，必須遮罩後才可進知識庫。
 
@@ -140,6 +156,12 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - **FR-028**: System MUST 在 CI 產出 evidence bundle 與 patch proposal。
 - **FR-029**: System MUST NOT 自動 merge 修正到主分支。
 - **FR-030**: System MUST 排除影音素材處理、風格化、剪輯與音樂歌詞生成能力。
+- **FR-031**: System MUST 以 `ToolCard` 管理每個工具之 `description/examples/help/input/output/risk`。
+- **FR-032**: System MUST 提供 `idk tools list`、`idk tools show <tool_id>`、`idk tools doctor`。
+- **FR-033**: System MUST 透過 wrapper/adaptor 將異質工具介面正規化為統一 `ExecResult`。
+- **FR-034**: System MUST 支援 busybox-link 風格的 alias 對應，同一意圖可映射到多工具。
+- **FR-035**: System MUST 讓既有 `hlapi_ingest`、`hlapi_discovery` 以同一命令註冊機制暴露。
+- **FR-036**: System MUST 提供工具介接治理狀態（healthy/degraded/blocked）並回報原因。
 
 ### Key Entities *(include if feature involves data)*
 
@@ -153,6 +175,7 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - **EvidenceRecord / ConsensusRecord / VetoReason**: 多代理證據、收斂與否決資訊。
 - **HLAPITestCase / HLAPIDiscoveryRecord**: 測試案例與探勘記錄。
 - **PatchProposal**: 可審核修正建議。
+- **ToolCard / ToolCatalogEntry**: 工具說明、範例、help 契約、健康狀態與 alias 對應。
 
 ## Success Criteria *(mandatory)*
 
@@ -167,6 +190,8 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - **SC-007**: GUI 下鑽成功率 >= 95%，且每次下鑽可追溯到至少 2 條證據。
 - **SC-008**: xlsx 匯入完整率 100%，lineage 缺失率 0%。
 - **SC-009**: CI 每次均輸出 evidence bundle 與 patch proposal，auto-merge 次數固定為 0。
+- **SC-010**: ToolCard 覆蓋率 100%，所有可調度工具皆可由 `idk tools show` 取得可執行說明。
+- **SC-011**: wrapper 正規化後 `ExecResult` 欄位完整率 100%，degraded 工具不得被 workflow 自動執行。
 
 ## Assumptions
 

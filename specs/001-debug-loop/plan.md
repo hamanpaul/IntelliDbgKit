@@ -8,6 +8,7 @@
 重構目標為建立「簡潔核心不汙染」的除錯中樞，並把 trace 轉成長期知識資產。  
 本版以 PI Core 為核心，整合四層壓縮、雙條件記憶升級、技能化工作流、多 Agent 否決式收斂。  
 GUI/CLI 同步使用同一事件與證據模型，CI 僅輸出 evidence bundle 與 patch proposal。
+工具引入採 ToolCard 命令目錄（description/examples/help）與 wrapper 正規化，降低外部工具介接差異。
 
 ## Technical Context
 
@@ -180,6 +181,7 @@ mindmap
 | Root cause | 收斂與否決 | Analyzer 證據生成 | root-cause-flow | consensus card |
 | 記憶升級 | 雙條件判定 | Memory plugin 提交候選 | memory-promote-flow | long-memory note |
 | 修正建議 | 風險與政策檢查 | Analyzer/Actuator 產草案 | patch-proposal-flow | patch proposal |
+| 工具導引 | ToolCard 契約治理 | wrapper/help provider | tools-introspect-flow | tool catalog |
 
 ## Project Structure
 
@@ -200,7 +202,8 @@ specs/001-debug-loop/
 │   ├── hlapi-testcase.schema.json
 │   ├── workflow.schema.json
 │   ├── memory-promotion.schema.json
-│   └── compression-lexicon.schema.json
+│   ├── compression-lexicon.schema.json
+│   └── tool-card.schema.json
 ├── testing/
 │   └── hlapi-markdown-normalization.md
 └── checklists/
@@ -239,6 +242,9 @@ src/
 │   ├── evidence_bundle.py
 │   └── patch_proposal.py
 └── cli/
+    ├── main.py
+    ├── tool_card.py
+    ├── command_registry.py
     └── commands/
 
 gui/
@@ -267,6 +273,7 @@ tests/
 2. 完成記憶生命周期與 promotion decision 模型。
 3. 完成技能化 workflow 定義與阻塞條件。
 4. 補齊 GUI 下鑽所需欄位與關聯。
+5. 建立 ToolCard schema 與 CLI 命令註冊規範。
 
 ## Complexity Tracking
 
