@@ -112,3 +112,43 @@ target 自動 discovery 產生的新 API 必須寫入同一模型並標記來源
 - `tags += ["discovery", "<provider>"]`
 
 藉此確保人工資料與自動探勘資料可在同一查詢面管理。
+
+## 10. Compression & Lexicon Integration
+
+正規化輸出需支援後續壓縮流程，並可反譯：
+
+- testcase/index 需保留 `semantic_tags`（例：`hlapi-read`, `hlapi-write`, `not-supported`）。
+- 若字串命中壓縮字典，需寫入 `compression_refs`：
+  - `tier`: `dedup|aggregate|summary|semantic`
+  - `token`: 例如 `[tc_ndev_ev]`
+  - `lexicon_id`: 字典條目 ID
+- 壓縮僅可作用於副本欄位，不得覆寫 `command_output` 原值。
+- 每批資料需執行一次 round-trip 驗證（壓縮->反譯）：
+  - 語意等價率必須為 `100%`
+  - 關鍵 lineages（file/sheet/row）保留率必須為 `100%`
+
+## 11. Workflow and Skill Linkage
+
+每筆 testcase 應可被 workflow runtime 直接引用：
+
+- `trace-capture-flow`：掛載 testcase 與 trace 事件關聯。
+- `root-cause-flow`：產生 root-cause card 時，必須回鏈 testcase。
+- `patch-proposal-flow`：如有修正建議，需附 testcase 與 evidence refs。
+- `memory-promote-flow`：若 testcase 導致 candidate memory，需保存 promotion decision。
+
+最終輸出須可對應以下查詢鏈：
+
+`testcase -> trace-index -> consensus -> patch-proposal -> long-memory`
+
+## 12. Obsidian Relation Integrity
+
+Obsidian 為主資料結構，驗收時需檢查：
+
+- 每個 testcase note 至少包含：
+  - `run_id`
+  - `source_sheet`
+  - `source_row`
+  - `links`
+- `run-summary.md` 必須包含 testcase 統計（pass/fail/not-supported/unknown）。
+- `trace-index.md` 必須可依 `case_id` 反查相關事件。
+- `root-cause` 卡片若存在，必須能回鏈到 testcase note。

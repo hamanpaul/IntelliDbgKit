@@ -1,154 +1,117 @@
-# Tasks: IntelliDbgKit Debug-Observe Core
+# Tasks: IntelliDbgKit PI Core Debug Hub
 
 **Input**: Design documents from `specs/001-debug-loop/`  
-**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`  
-**Tests**: 必須包含 contract/integration 測試，驗證閉環與一致性門檻。  
-**Organization**: 依 user story 分組，確保可獨立交付。
+**Prerequisites**: `spec.md`, `plan.md`, `data-model.md`, `research.md`, `contracts/`  
+**Tests**: 每個 phase 均需包含 contract/integration 測試。  
+**Organization**: 依核心能力分 phase；避免插件跨邊界直寫。
 
-## Format: `[ID] [P?] [Story] Description`
+## Format: `[ID] [P?] [Domain] Description`
 
 - **[P]**: 可平行執行。
-- **[Story]**: `US1/US2/US3/US4/US5`。
-
-## Phase 1: Setup (Shared Infrastructure)
-
-- [ ] T001 建立核心目錄骨架：`src/orchestrator`, `src/bus`, `src/adapters`, `src/plugins`, `src/knowledge`, `src/ingestion`, `src/cli`
-- [ ] T002 建立 GUI 骨架：`gui/src/timeline`, `gui/src/graph`, `gui/src/drilldown`, `gui/src/api`
-- [ ] T003 [P] 建立測試骨架：`tests/unit`, `tests/contract`, `tests/integration`
-- [ ] T004 [P] 建立 schema 載入與驗證框架：`src/bus/schema_registry.py`
+- **[Domain]**: `CORE/MEM/COMP/WF/AGENT/GUI/HLAPI/CI`。
 
 ---
 
-## Phase 2: Foundational (Blocking)
+## Phase 1: PI Core Boundary
 
-- [ ] T005 實作 `TraceEvent` schema 驗證器：`src/bus/validators.py`
-- [ ] T006 實作 `CommandIntent/ExecResult` 基礎型別：`src/adapters/command_intent.py`
-- [ ] T007 實作 plugin manifest 註冊與相容檢查：`src/plugins/registry.py`
-- [ ] T008 實作 run 狀態機：`src/orchestrator/state_machine.py`
-- [ ] T009 實作 artifact writer（vault + index）：`src/knowledge/vault_writer.py`
-- [ ] T010 建立敏感資訊遮罩器：`src/knowledge/masking.py`
-- [ ] T011 [P] Contract test：`tests/contract/test_event_schema.py`
-- [ ] T012 [P] Contract test：`tests/contract/test_plugin_manifest.py`
+- [ ] T001 [CORE] 建立 PI core 目錄與邊界守衛：`src/core/`
+- [ ] T002 [CORE] 實作 `state_machine.py` 與轉移審計。
+- [ ] T003 [CORE] 實作 `event_bus.py` 與 schema 驗證入口。
+- [ ] T004 [CORE] 實作 `veto_gate.py` 基礎判斷器。
+- [ ] T005 [P] [CORE] Contract test：`tests/contract/test_event_schema.py`
+- [ ] T006 [P] [CORE] Integration test：`tests/integration/test_core_boundary_guard.py`
 
-**Checkpoint**: T005~T012 完成後才能進入 user story 實作。
+**Checkpoint**: 插件不能直接寫入 core state。
 
 ---
 
-## Phase 3: User Story 1 - CLI 除錯閉環 (Priority: P1) 🎯 MVP
+## Phase 2: Memory Lifecycle
 
-**Goal**: 完成單次 run 的收集、分析、報告與 patch 建議閉環。
+- [ ] T007 [MEM] 實作 `memory_store.py`（raw/working/candidate/long）。
+- [ ] T008 [MEM] 實作 `promotion_engine.py`（雙條件升級）。
+- [ ] T009 [MEM] 實作 long-memory 寫入與回鏈索引。
+- [ ] T010 [P] [MEM] Contract test：`tests/contract/test_memory_promotion_schema.py`
+- [ ] T011 [P] [MEM] Integration test：`tests/integration/test_memory_promotion_gate.py`
 
-**Independent Test**: 執行單一 HLAPI 測項，產生 run summary + root-cause + patch proposal。
-
-### Tests for User Story 1
-
-- [ ] T013 [P] [US1] Integration test：`tests/integration/test_cli_debug_loop.py`
-- [ ] T014 [P] [US1] Integration test：`tests/integration/test_state_machine_transitions.py`
-
-### Implementation for User Story 1
-
-- [ ] T015 [US1] 實作 run controller：`src/orchestrator/run_controller.py`
-- [ ] T016 [US1] 實作 CLI 命令 `run/test/analyze/patch/report`：`src/cli/commands/*.py`
-- [ ] T017 [US1] 實作 TraceZone collector：`src/plugins/tracezone_collector/collector.py`
-- [ ] T018 [US1] 實作 UART(serialwrap) collector：`src/plugins/uart_collector/collector.py`
-- [ ] T019 [US1] 實作 GDB collector：`src/plugins/gdb_collector/collector.py`
-- [ ] T020 [US1] 實作 eBPF collector：`src/plugins/ebpf_collector/collector.py`
-- [ ] T021 [US1] 實作 root-cause 卡片輸出：`src/report/root_cause_card.py`
-- [ ] T022 [US1] 實作 patch proposal 生成：`src/report/patch_proposal.py`
+**Checkpoint**: 未達雙條件不得升級 long-memory。
 
 ---
 
-## Phase 4: User Story 2 - Wrapper/Adapter 統一介面 (Priority: P1)
+## Phase 3: Compression and Lexicon
 
-**Goal**: 以單一 `CommandIntent` 介面統一多 provider 執行邏輯。
+- [ ] T012 [COMP] 實作四層壓縮流程：`src/memory/compression_codec.py`
+- [ ] T013 [COMP] 實作語意壓縮查表：`src/memory/lexicon.py`
+- [ ] T014 [COMP] 實作反譯流程與 round-trip 驗證。
+- [ ] T015 [P] [COMP] Contract test：`tests/contract/test_compression_lexicon_schema.py`
+- [ ] T016 [P] [COMP] Integration test：`tests/integration/test_compression_roundtrip.py`
 
-**Independent Test**: 相同 intent 可在 UART 與 SSH provider 取得一致語意結果。
-
-### Tests for User Story 2
-
-- [ ] T023 [P] [US2] Contract test：`tests/contract/test_command_intent_schema.py`
-- [ ] T024 [P] [US2] Integration test：`tests/integration/test_provider_mapping.py`
-
-### Implementation for User Story 2
-
-- [ ] T025 [US2] 實作 adapter base：`src/adapters/base.py`
-- [ ] T026 [P] [US2] 實作 `uart_adapter.py`
-- [ ] T027 [P] [US2] 實作 `ssh_adapter.py`
-- [ ] T028 [P] [US2] 實作 `adb_adapter.py`
-- [ ] T029 [P] [US2] 實作 `telnet_adapter.py`
-- [ ] T030 [US2] 實作 provider capability matrix：`src/adapters/capability_matrix.py`
+**Checkpoint**: 壓縮後可反譯且保留證據索引。
 
 ---
 
-## Phase 5: User Story 3 - GUI 回放與下鑽 (Priority: P2)
+## Phase 4: Workflow and Skill Runtime
 
-**Goal**: 提供 HLAPI→LLAPI + TraceZone flow 回放與節點下鑽。
+- [ ] T017 [WF] 實作 `workflow_runtime.py`。
+- [ ] T018 [WF] 新增 flows：`trace-capture`, `root-cause`, `patch-proposal`, `patch-verify`, `memory-promote`。
+- [ ] T019 [WF] 實作 guard/block 機制與 blocked report。
+- [ ] T020 [P] [WF] Contract test：`tests/contract/test_workflow_schema.py`
+- [ ] T021 [P] [WF] Integration test：`tests/integration/test_workflow_blocking.py`
 
-**Independent Test**: GUI 可對單次 run 進行時間線播放並顯示節點關聯證據。
-
-### Tests for User Story 3
-
-- [ ] T031 [P] [US3] Integration test：`gui/tests/timeline_replay.spec.ts`
-- [ ] T032 [P] [US3] Integration test：`gui/tests/node_drilldown.spec.ts`
-
-### Implementation for User Story 3
-
-- [ ] T033 [US3] 實作 timeline feed API：`src/orchestrator/api_timeline.py`
-- [ ] T034 [US3] 實作 graph/drilldown API：`src/orchestrator/api_graph.py`
-- [ ] T035 [US3] GUI timeline 元件：`gui/src/timeline/*`
-- [ ] T036 [US3] GUI graph + drilldown 元件：`gui/src/graph/*`, `gui/src/drilldown/*`
+**Checkpoint**: speckit 工具能力可作為 skill/workflow 一級調度。
 
 ---
 
-## Phase 6: User Story 4 - HLAPI 測試匯入與 Discovery 原型 (Priority: P2)
+## Phase 5: Multi-Agent Consensus and Veto
 
-**Goal**: 將 xlsx 轉成 markdown/index，並完成 target 自動 discovery 最小原型。
+- [ ] T022 [AGENT] 實作 agent dispatcher：`src/core/agent_dispatcher.py`
+- [ ] T023 [AGENT] 實作 weighted consensus：`src/core/consensus_engine.py`
+- [ ] T024 [AGENT] 實作 veto reason 與補觀測建議。
+- [ ] T025 [P] [AGENT] Unit test：`tests/unit/test_consensus_scoring.py`
+- [ ] T026 [P] [AGENT] Integration test：`tests/integration/test_consensus_veto_path.py`
 
-**Independent Test**: 指定 xlsx 轉換成功；discovery 新增記錄可回鏈到 run。
-
-### Tests for User Story 4
-
-- [ ] T037 [P] [US4] Unit test：`tests/unit/test_xlsx_to_markdown_mapping.py`
-- [ ] T038 [P] [US4] Integration test：`tests/integration/test_hlapi_discovery_minimal.py`
-
-### Implementation for User Story 4
-
-- [ ] T039 [US4] 實作 xlsx 載入器：`src/ingestion/xlsx_loader.py`
-- [ ] T040 [US4] 實作 markdown 寫入器：`src/ingestion/hlapi_markdown_writer.py`
-- [ ] T041 [US4] 實作 discovery collector：`src/plugins/hlapi_discovery/collector.py`
-- [ ] T042 [US4] 實作 lineage indexer：`src/knowledge/lineage_indexer.py`
+**Checkpoint**: 缺關鍵證據時必須 veto，不得輸出假確定結論。
 
 ---
 
-## Phase 7: User Story 5 - 多 Agent 共識分析 (Priority: P3)
+## Phase 6: Debug Stack and HLAPI Ingestion
 
-**Goal**: 主控代理平行調度多代理並輸出共識與異議。
+- [ ] T027 [HLAPI] TraceZone/UART/GDB/eBPF collector 接入。
+- [ ] T028 [HLAPI] `xlsx_loader.py` 與 `hlapi_writer.py` 正規化匯入。
+- [ ] T029 [HLAPI] HLAPI discovery 最小原型接入。
+- [ ] T030 [P] [HLAPI] Unit test：`tests/unit/test_xlsx_to_markdown_mapping.py`
+- [ ] T031 [P] [HLAPI] Integration test：`tests/integration/test_hlapi_discovery_minimal.py`
 
-**Independent Test**: 兩組衝突證據可收斂並保留 dissent。
-
-### Tests for User Story 5
-
-- [ ] T043 [P] [US5] Unit test：`tests/unit/test_consensus_scoring.py`
-- [ ] T044 [P] [US5] Integration test：`tests/integration/test_multi_agent_consensus.py`
-
-### Implementation for User Story 5
-
-- [ ] T045 [US5] 實作多代理 dispatcher：`src/orchestrator/agent_dispatcher.py`
-- [ ] T046 [US5] 實作共識引擎：`src/orchestrator/consensus_engine.py`
-- [ ] T047 [US5] 實作證據交換結構：`src/orchestrator/evidence_bus.py`
+**Checkpoint**: `QoS_LLAPI` 起各 sheet 可完整匯入並保留 lineage。
 
 ---
 
-## Phase 8: Polish & CI Integration
+## Phase 7: GUI Timeline and Drilldown
 
-- [ ] T048 建立 evidence bundle 輸出：`src/report/evidence_bundle.py`
-- [ ] T049 建立 CI job 範本（僅 patch proposal）：`.github/workflows/idk-debug-loop.yml`
-- [ ] T050 更新文件：`specs/001-debug-loop/quickstart.md`, `docs/`
-- [ ] T051 一致性驗證工具：`src/orchestrator/consistency_checker.py`
+- [ ] T032 [GUI] 實作 timeline feed API。
+- [ ] T033 [GUI] 實作 graph/drilldown API。
+- [ ] T034 [GUI] GUI 顯示 HLAPI->LLAPI->TraceZone flow。
+- [ ] T035 [P] [GUI] Integration test：`gui/tests/timeline_replay.spec.ts`
+- [ ] T036 [P] [GUI] Integration test：`gui/tests/node_drilldown.spec.ts`
 
-## Dependencies & Execution Order
+**Checkpoint**: GUI 可回鏈 evidence/consensus/obsidian note。
 
-- `Phase 1 -> Phase 2` 完成前，禁止進入任何 User Story。
-- US1 與 US2 完成後可平行展開 US3/US4。
-- US5 依賴 US1（事件/證據）與 US2（協調介面）。
-- Polish 階段依賴所有目標 story 完成。
+---
+
+## Phase 8: CI Evidence Delivery
+
+- [ ] T037 [CI] 產生 evidence bundle：`src/report/evidence_bundle.py`
+- [ ] T038 [CI] 產生 patch proposal：`src/report/patch_proposal.py`
+- [ ] T039 [CI] CI workflow 僅輸出 proposal，不執行 merge。
+- [ ] T040 [P] [CI] Integration test：`tests/integration/test_ci_delivery_policy.py`
+
+**Checkpoint**: 每次 CI 皆輸出 evidence bundle + patch proposal，auto-merge 固定 0。
+
+---
+
+## Dependencies and Execution Order
+
+1. Phase 1 完成前，不可開始其他 phase。
+2. Phase 2 與 Phase 3 可平行，但 Phase 4 需依賴兩者。
+3. Phase 5 依賴 Phase 1 + Phase 4。
+4. Phase 6 依賴 Phase 1；Phase 7 依賴 Phase 1 + Phase 6。
+5. Phase 8 依賴 Phase 5 + Phase 6。

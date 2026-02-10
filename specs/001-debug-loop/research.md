@@ -1,70 +1,67 @@
-# Research Notes: IntelliDbgKit Debug-Observe Core
+# Research Notes: IntelliDbgKit PI Core Debug Hub
 
-## Decision 1: TraceZone-first, GDB/eBPF 補強
+## Decision 1: PI Core 嚴格邊界
 
-- **Decision**: 初期以 TraceZone 作為主要 runtime call flow 來源；GDB/eBPF 依案例與環境能力補強。
+- **Decision**: Core 只保留狀態機、事件匯流排、工作流、證據收斂；插件不可直寫核心狀態與 long-memory。
 - **Rationale**:
-  - TraceZone 在既有 prplOS 工作流中導入成本最低。
-  - 可先完成 HLAPI→LLAPI 可視化主路徑，再逐步擴展低層探針。
-  - 降低 eBPF 不可用平台（舊 kernel/受限板）導入風險。
+  - 核心越小，越不易被外部功能汙染。
+  - 可將風險集中在 adapter/plugin 層隔離。
+  - 有利於後續多 Agent 與多工具擴充。
 - **Alternatives considered**:
-  - GDB/eBPF 優先：觀測精度高，但早期 setup 較重。
-  - 三者同權融合：完整但超出 MVP 可控範圍。
+  - 軟性邊界：彈性高但容易漂移。
+  - 無邊界：短期快，長期不可維護。
 
-## Decision 2: 一致性採分層門檻，不採固定 90%
+## Decision 2: 長記憶雙條件升級
+
+- **Decision**: candidate memory 需同時滿足 `repro_count >= 2` 與 `consensus_score >= threshold` 才能升級 long-memory。
+- **Rationale**:
+  - 降低單次偶發噪聲污染長記憶。
+  - 保留可追溯判定依據，便於稽核。
+- **Alternatives considered**:
+  - 單次高信心即升級：污染風險偏高。
+  - 全人工審核：自動化收益不足。
+
+## Decision 3: 四層壓縮 + 語意壓縮可逆
 
 - **Decision**:
-  - 行為類（例如連線是否成功、設定是否生效）= 100%
-  - 控制流拓樸（關鍵 state/call path）= 100%
-  - 統計類（pkt/cpu/memory 等）>= 80%
+  1. Dedup
+  2. Semantic aggregation
+  3. Cross-run summary
+  4. Semantic codec（可逆）
 - **Rationale**:
-  - 板端資源與流量統計具有非決定性抖動。
-  - 若統一要求 100%，會把噪聲誤判為功能回歸，降低分析效率。
-  - 分層規則可同時保留功能正確性與工程可操作性。
+  - 壓縮可降低雜訊與儲存成本。
+  - 可逆語意壓縮能保留法證級追溯能力。
+  - 可實作關鍵字壓縮（如 `entered blocking state -> blocking`）與字串樣板壓縮（如 `[tc_ndev_ev]`）。
 - **Alternatives considered**:
-  - 全指標 100%：過嚴，誤報率高。
-  - 固定 90%：可解釋性不足，無法區分功能失敗與量測噪聲。
+  - 只摘要：容易失真。
+  - 只去重：降噪不足。
 
-## Decision 3: Obsidian 原生為主，不做後置匯出
+## Decision 4: 多 Agent 收斂採加權 + 否決
 
-- **Decision**: run、trace、root-cause、decision 都直接落在 Obsidian vault 結構；JSON 僅作 machine index。
+- **Decision**: 先加權收斂，再執行否決條件；缺關鍵證據時輸出 `veto` 而非硬結論。
 - **Rationale**:
-  - 符合知識管理主目標與使用者流程。
-  - 直接建立雙向連結與追蹤索引，避免匯入匯出同步誤差。
-  - 讓人類可讀與機器可查同時成立。
+  - 錯誤確定性結論風險高於未收斂。
+  - 可引導系統自動補觀測而非誤修正。
 - **Alternatives considered**:
-  - 先 JSON 再轉 markdown：機器友善但偏離使用者主工作流。
-  - 純 markdown 無 index：可讀性佳但大型查詢與 replay 效能受限。
+  - 純加權：可能掩蓋證據缺口。
+  - 全人工裁決：不利閉環自動化。
 
-## Decision 4: 統一 wrapper 入口 + provider adapter
+## Decision 5: Speckit 工具技能化
 
-- **Decision**: 對上僅暴露 `CommandIntent`；對下由 adapter 轉成 UART/ADB/SSH/Telnet/本機實際命令。
+- **Decision**: 將 speckit 規劃工具封裝成 `skill` + `workflow`，由 core workflow runtime 一致調度。
 - **Rationale**:
-  - 解耦命令語意與平台語法差異。
-  - 提前處理「相同指令語意但參數不相容」問題。
-  - 可對 provider 做能力宣告與健康檢查治理。
+  - 統一流程可降低跨工具行為差異。
+  - 避免工具邏輯散落且難以審計。
 - **Alternatives considered**:
-  - Busybox 式別名直連：遷移快，但治理與審計分散。
-  - 核心直接拼命令：短期可行，長期不可維護。
+  - 僅腳本鏈接：缺少治理。
+  - sidecar-only：流程收斂成本高。
 
-## Decision 5: 多 Agent 平行分析 + 主控收斂
+## Decision 6: Obsidian 為知識主結構
 
-- **Decision**: 透過 Copilot SDK 平行啟動多代理，由主控代理（orchestrator）執行遞迴分派與最終收斂。
+- **Decision**: run 與 long-memory 直接寫入 Obsidian 結構，JSON 作 machine index。
 - **Rationale**:
-  - 保留多模型互補與交叉驗證優勢。
-  - 避免無主控造成結果無法收斂。
-  - 以結構化證據交換，降低 context 汙染與敏感資訊擴散。
+  - 支援人類閱讀與機器回放雙需求。
+  - 降低匯入匯出一致性問題。
 - **Alternatives considered**:
-  - 平行獨立 + 人工比對：自動化不足。
-  - 單代理：簡單但降低可靠性。
-
-## Decision 6: HLAPI 測試資料雙來源（匯入 + 探勘）
-
-- **Decision**: 先匯入既有 xlsx（`QoS_LLAPI` 起所有 sheet）為 markdown/index；中後期加上 target 自動 discovery 原型。
-- **Rationale**:
-  - 可立即利用現有測試資產，快速形成 baseline。
-  - discovery 原型補上新增 API 的持續維護能力。
-  - 兩者共用同一 `HLAPITestCase`/`HLAPIDiscoveryRecord` 模型，避免資料分裂。
-- **Alternatives considered**:
-  - 僅人工維護 markdown：更新成本高且易遺漏。
-  - 一次做到完整 discovery：前期成本高，偏離 MVP。
+  - JSON 主存再轉 markdown：偏離使用流程。
+  - 純 markdown 無索引：大規模查詢效率不足。

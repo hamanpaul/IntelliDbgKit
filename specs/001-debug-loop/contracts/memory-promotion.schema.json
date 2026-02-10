@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intellidbgkit/contracts/memory-promotion.schema.json",
+  "title": "MemoryPromotionDecision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "candidate_memory_id",
+    "repro_count",
+    "consensus_score",
+    "threshold",
+    "approved",
+    "promotion_target",
+    "gate_checks",
+    "reasons",
+    "evaluated_at"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_memory_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repro_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "consensus_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "approved": {
+      "type": "boolean"
+    },
+    "promotion_target": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "long"
+      ]
+    },
+    "gate_checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repro_gate_passed",
+        "consensus_gate_passed"
+      ],
+      "properties": {
+        "repro_gate_passed": {
+          "type": "boolean"
+        },
+        "consensus_gate_passed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "approved": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "promotion_target": {
+            "const": "long"
+          },
+          "repro_count": {
+            "minimum": 2
+          },
+          "gate_checks": {
+            "properties": {
+              "repro_gate_passed": {
+                "const": true
+              },
+              "consensus_gate_passed": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "approved": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "promotion_target": {
+            "const": "pending"
+          }
+        }
+      }
+    }
+  ]
+}

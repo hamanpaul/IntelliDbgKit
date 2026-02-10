@@ -1,19 +1,19 @@
-# Data Model: IntelliDbgKit Debug-Observe Core
+# Data Model: IntelliDbgKit PI Core Debug Hub
 
-## 1. Core Entities
+## 1. Core Domain
 
 ### 1.1 ProjectRun
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| run_id | string | Y | 單次執行唯一 ID |
-| project_name | string | Y | 專案名稱（對應 vault 第一層） |
-| target_id | string | Y | 測試目標板識別 |
+| run_id | string | Y | 單次執行 ID |
+| project_name | string | Y | 專案名稱 |
+| target_id | string | Y | 目標板識別 |
 | started_at | datetime | Y | 啟動時間 |
 | finished_at | datetime | N | 結束時間 |
-| state | enum | Y | 當前狀態機節點 |
-| trigger | string | Y | 測試觸發來源 |
-| summary_note | string | N | 對應 Obsidian run 摘要路徑 |
+| state | enum | Y | 狀態機節點 |
+| trigger | string | Y | 觸發來源 |
+| summary_note | string | N | run 摘要 note 路徑 |
 
 **State enum**: `BOOTSTRAP, TEST_LOOP, MONITOR, DETECT, CONDITION_ANALYSIS, REPRODUCE, DEBUG_ON, ANALYZE, ADV_TOOL_DECISION, AUTO_ACTION, REPRO_TRACE, RUNTIME_PATCH_TEST, REPORT, FAILED`
 
@@ -21,129 +21,160 @@
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| event_id | string | Y | 事件唯一 ID |
+| event_id | string | Y | 事件 ID |
 | run_id | string | Y | 關聯 run |
 | ts_ns | int64 | Y | 奈秒時間戳 |
-| phase | enum | Y | 所屬流程階段 |
-| source | enum | Y | `host` 或 `target` |
-| tool | string | Y | tracezone/gdb/ebpf/uart/... |
+| phase | string | Y | 流程階段 |
+| source | enum | Y | `host/target` |
+| tool | string | Y | tracezone/gdb/ebpf/uart 等 |
 | target_id | string | Y | 來源 target |
 | symbol | string | N | 關聯符號 |
-| address | string | N | 位址（hex） |
+| address | string | N | 位址 |
 | severity | enum | Y | `info/warn/error/critical` |
-| payload | object | Y | 工具原始/正規化內容 |
-| links | array | N | 關聯 event/evidence/note |
+| payload | object | Y | 原始或正規化內容 |
+| semantic_tags | array<string> | N | 語意標籤 |
+| compression_refs | array<object> | N | 壓縮引用 |
+| links | array<object> | N | event/evidence/note 關聯 |
 
 ### 1.3 CommandIntent
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| intent_id | string | Y | 命令語意 ID |
-| action | string | Y | 語意動作（例: set_param, query_param） |
-| object_path | string | N | TR-181/DM 目標 |
-| parameter | string | N | 參數名 |
-| value | string/number/bool | N | 欲設定值 |
-| constraints | object | N | 執行條件（timeout/retry/provider scope） |
+| intent_id | string | Y | 語意命令 ID |
+| action | string | Y | 動作 |
+| object_path | string | N | TR-181 路徑 |
+| parameter | string | N | 參數 |
+| value | string/number/bool | N | 目標值 |
+| constraints | object | N | timeout/retry/provider 等 |
 | preferred_provider | string | N | 建議 provider |
 
 ### 1.4 ExecResult
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| intent_id | string | Y | 對應 CommandIntent |
+| intent_id | string | Y | 對應 intent |
 | provider | enum | Y | `uart/adb/ssh/telnet/local` |
 | rc | int | Y | return code |
 | stdout | string | N | 標準輸出 |
 | stderr | string | N | 錯誤輸出 |
-| latency_ms | int | Y | 執行耗時 |
+| latency_ms | int | Y | 耗時 |
 | normalized | object | N | 正規化結果 |
-| error_code | string | N | 結構化錯誤碼 |
+| error_code | string | N | 結構化錯誤 |
 
-### 1.5 SourceMapNode / SourceMapEdge
+## 2. Memory Domain
 
-**SourceMapNode**
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| node_id | string | Y | 節點 ID |
-| layer | enum | Y | `HLAPI/LLAPI/Driver/Kernel/Tooling` |
-| symbol | string | N | 函式/符號 |
-| file | string | N | 原始碼路徑 |
-| line | int | N | 行號 |
-| dm_path | string | N | 物件路徑 |
-
-**SourceMapEdge**
+### 2.1 MemoryRecord
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| edge_id | string | Y | 邊 ID |
-| from_node | string | Y | 起點 |
-| to_node | string | Y | 終點 |
-| edge_type | enum | Y | `call/state/data/bus` |
-| confidence | number | Y | 0.0 - 1.0 |
+| memory_id | string | Y | 記憶記錄 ID |
+| run_id | string | Y | 來源 run |
+| memory_tier | enum | Y | `raw/working/candidate/long` |
+| content | string | Y | 記憶內容 |
+| evidence_refs | array<string> | Y | 關聯證據 |
+| created_at | datetime | Y | 建立時間 |
+| promoted_from | string | N | 升級來源 tier |
 
-### 1.6 HLAPITestCase
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| case_id | string | Y | 測試案例 ID |
-| source_file | string | Y | xlsx 檔案路徑 |
-| source_sheet | string | Y | 來源 sheet |
-| source_row | int | Y | 來源列號 |
-| object_path | string | N | Object/DataModel |
-| parameter_name | string | N | Parameter |
-| hlapi_command | string | N | HLAPI 指令 |
-| llapi_support | string | N | LLAPI 支援狀態 |
-| test_steps | string | N | 測試步驟 |
-| command_output | string | N | 結果輸出摘要 |
-| result_status | enum | N | `pass/fail/not-supported/skip/unknown` |
-| comment | string | N | 備註 |
-| tags | array<string> | N | 模組/版本/板型 |
-
-### 1.7 HLAPIDiscoveryRecord
+### 2.2 MemoryPromotionDecision
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| discovery_id | string | Y | 探勘記錄 ID |
+| decision_id | string | Y | 判定 ID |
+| candidate_memory_id | string | Y | 候選記憶 ID |
+| repro_count | int | Y | 重現次數 |
+| consensus_score | number | Y | 共識分數 |
+| threshold | number | Y | 升級門檻 |
+| approved | boolean | Y | 是否核准升級 |
+| reasons | array<string> | Y | 判定理由 |
+| evaluated_at | datetime | Y | 判定時間 |
+
+## 3. Compression Domain
+
+### 3.1 CompressionLexiconEntry
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| lexicon_id | string | Y | 字典條目 ID |
+| token | string | Y | 壓縮 token（例如 `[tc_ndev_ev]`） |
+| original_pattern | string | Y | 原字串樣板 |
+| reverse_rule | string | Y | 反譯規則 |
+| tier | enum | Y | `dedup/aggregate/summary/semantic` |
+| created_at | datetime | Y | 建立時間 |
+
+### 3.2 CompressionStepResult
+
+| Field | Type | Required | Description |
+|---|---|---|---|
 | run_id | string | Y | 關聯 run |
-| target_id | string | Y | 關聯 target |
-| collected_at | datetime | Y | 探勘時間 |
-| collector | string | Y | discovery provider |
-| object_path | string | Y | 發現物件 |
-| parameter_name | string | N | 發現參數 |
-| access_mode | enum | Y | `read/write/rw` |
-| probe_command | string | Y | 探測命令 |
-| observed_value | string | N | 探測值 |
-| support_state | enum | Y | `supported/partial/not-supported/unknown` |
-| evidence_refs | array<string> | N | 追溯證據 |
+| step | enum | Y | `dedup/aggregate/summary/semantic` |
+| input_count | int | Y | 輸入事件數 |
+| output_count | int | Y | 輸出事件數 |
+| lossless | boolean | Y | 是否保持證據可逆 |
+| roundtrip_ok | boolean | Y | 反譯是否通過 |
 
-### 1.8 EvidenceRecord / ConsensusRecord
+## 4. Workflow Domain
 
-**EvidenceRecord**
+### 4.1 WorkflowDefinition
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| workflow_id | string | Y | 工作流 ID |
+| version | string | Y | 版本 |
+| name | string | Y | 顯示名稱 |
+| trigger | string | Y | 觸發條件 |
+| steps | array<object> | Y | 步驟清單 |
+| guards | array<object> | N | 守門條件 |
+| outputs | array<string> | Y | 預期輸出 |
+
+### 4.2 WorkflowRun
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| workflow_run_id | string | Y | 執行 ID |
+| workflow_id | string | Y | 工作流 ID |
+| run_id | string | Y | 關聯 project run |
+| status | enum | Y | `running/success/blocked/failed` |
+| blocked_reason | string | N | 阻塞原因 |
+| started_at | datetime | Y | 啟動時間 |
+| finished_at | datetime | N | 完成時間 |
+
+## 5. Analysis Domain
+
+### 5.1 EvidenceRecord
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | evidence_id | string | Y | 證據 ID |
 | run_id | string | Y | 關聯 run |
-| agent_id | string | Y | 來源 agent |
+| agent_id | string | Y | 來源代理 |
 | claim | string | Y | 主張 |
-| confidence | number | Y | 0.0 - 1.0 |
-| refs | array<string> | Y | event/note/source-map 參照 |
-| conflicts | array<string> | N | 衝突 evidence |
+| confidence | number | Y | 信心分數 |
+| refs | array<string> | Y | 參照鏈結 |
+| conflicts | array<string> | N | 衝突證據 |
 
-**ConsensusRecord**
+### 5.2 VetoReason
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| code | string | Y | 否決碼 |
+| message | string | Y | 否決訊息 |
+| required_evidence | array<string> | N | 缺失證據項 |
+
+### 5.3 ConsensusRecord
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | consensus_id | string | Y | 共識 ID |
 | run_id | string | Y | 關聯 run |
 | topic | string | Y | 收斂主題 |
-| winning_claim | string | Y | 最終結論 |
-| weighted_score | number | Y | 最終分數 |
+| winning_claim | string | N | 最終主張 |
+| weighted_score | number | N | 收斂分數 |
 | evidence_refs | array<string> | Y | 支持證據 |
-| dissenting_claims | array<object> | N | 異議列表 |
+| dissenting_claims | array<object> | N | 異議清單 |
+| vetoed | boolean | Y | 是否否決 |
+| veto_reasons | array<object> | N | 否決原因 |
 
-### 1.9 PatchProposal
+### 5.4 PatchProposal
 
 | Field | Type | Required | Description |
 |---|---|---|---|
@@ -153,51 +184,74 @@
 | diff_preview | string | N | patch 片段 |
 | related_consensus | string | Y | 關聯共識 |
 | risk_level | enum | Y | `low/medium/high` |
-| merge_policy | enum | Y | 固定為 `manual-review-only` |
+| evidence_min_set | array<string> | Y | 最小證據集 |
+| merge_policy | enum | Y | 固定 `manual-review-only` |
 
-## 2. Relationships
+## 6. HLAPI Domain
+
+### 6.1 HLAPITestCase
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| case_id | string | Y | 測項 ID |
+| source_file | string | Y | 來源檔案 |
+| source_sheet | string | Y | 來源 sheet |
+| source_row | int | Y | 來源 row |
+| object_path | string | N | 物件路徑 |
+| parameter_name | string | N | 參數名稱 |
+| hlapi_command | string | N | 指令 |
+| llapi_support | string | N | 支援狀態 |
+| test_steps | string | N | 測試步驟 |
+| command_output | string | N | 輸出摘要 |
+| result_status | enum | N | `pass/fail/not-supported/skip/unknown` |
+| comment | string | N | 備註 |
+
+### 6.2 HLAPIDiscoveryRecord
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| discovery_id | string | Y | 探勘 ID |
+| run_id | string | Y | 關聯 run |
+| target_id | string | Y | 關聯 target |
+| collected_at | datetime | Y | 探勘時間 |
+| collector | string | Y | 探勘來源 |
+| object_path | string | Y | 發現路徑 |
+| parameter_name | string | N | 發現參數 |
+| access_mode | enum | Y | `read/write/rw` |
+| probe_command | string | Y | 探測命令 |
+| support_state | enum | Y | `supported/partial/not-supported/unknown` |
+| evidence_refs | array<string> | N | 證據關聯 |
+
+## 7. Relationships
 
 - `ProjectRun (1) -> (N) TraceEvent`
+- `ProjectRun (1) -> (N) WorkflowRun`
 - `ProjectRun (1) -> (N) EvidenceRecord`
 - `ProjectRun (1) -> (N) ConsensusRecord`
-- `ProjectRun (1) -> (N) HLAPIDiscoveryRecord`
-- `HLAPITestCase (N) <-> (N) SourceMapNode`（透過 object/parameter/symbol 關聯）
+- `ProjectRun (1) -> (N) MemoryRecord`
+- `MemoryRecord (candidate) (1) -> (N) MemoryPromotionDecision`
 - `ConsensusRecord (1) -> (N) PatchProposal`
-- `TraceEvent (N) <-> (N) SourceMapNode`（symbol/address/time-slice 對齊）
+- `TraceEvent (N) <-> (N) CompressionLexiconEntry`
+- `HLAPITestCase (N) <-> (N) TraceEvent`
 
-## 3. Validation Rules
+## 8. Validation Rules
 
-1. 所有 `TraceEvent.run_id` 必須存在對應 `ProjectRun`。
-2. `ProjectRun` 進入 `REPORT` 前，至少要有一筆 `ConsensusRecord` 或 `未收斂標記`。
-3. `PatchProposal.merge_policy` 必須固定 `manual-review-only`。
-4. 重製一致性驗證必須分層輸出：
-   - behavior_score = 1.0
-   - control_flow_score = 1.0
-   - telemetry_score >= 0.8
-5. `HLAPITestCase` 必須保留 `source_file/source_sheet/source_row` lineage 欄位。
-6. `EvidenceRecord.refs` 至少 1 條且需可解析到既有 artifact。
+1. 插件不可直接寫入 `ProjectRun.state` 與 `MemoryRecord(memory_tier=long)`。
+2. `PatchProposal.merge_policy` 必須固定 `manual-review-only`。
+3. `MemoryPromotionDecision.approved=true` 必須同時滿足：
+   - `repro_count >= 2`
+   - `consensus_score >= threshold`
+4. `CompressionStepResult.roundtrip_ok` 必須為 true 才能進入下一步分析。
+5. veto 發生時 `ConsensusRecord.winning_claim` 可為空，但 `veto_reasons` 不可空。
+6. `HLAPITestCase` 必須保留 file/sheet/row lineage 欄位。
 
-## 4. Obsidian Mapping
+## 9. Obsidian Mapping
 
 - Run note: `vault/<project>/<run_id>/notes/run-summary.md`
 - Root cause card: `vault/<project>/<run_id>/notes/root-cause/<consensus_id>.md`
 - Trace index: `vault/<project>/<run_id>/notes/trace-index.md`
+- Long memory: `vault/<project>/knowledge/long-memory/*.md`
 - Assets: `vault/<project>/<run_id>/assets/*`
 - Machine index: `vault/<project>/<run_id>/index/*.json`
 
-每個 note 必須包含至少以下 metadata：`run_id`, `target_id`, `phase`, `links`, `created_at`。
-
-## 5. State Transitions
-
-1. `BOOTSTRAP -> TEST_LOOP`: 環境與 collector 初始化成功。
-2. `TEST_LOOP -> MONITOR`: 測試啟動後開始監控。
-3. `MONITOR -> DETECT`: 偵測到異常或測試失敗。
-4. `DETECT -> CONDITION_ANALYSIS`: 梳理觸發條件與復現前置。
-5. `CONDITION_ANALYSIS -> REPRODUCE`: 啟動穩定重製。
-6. `REPRODUCE -> DEBUG_ON`: 達到重製條件後開啟除錯工具。
-7. `DEBUG_ON -> ANALYZE`: 完成資料採集進入分析。
-8. `ANALYZE -> ADV_TOOL_DECISION`: 判斷是否升級工具層。
-9. `ADV_TOOL_DECISION -> AUTO_ACTION`: 執行 auto-build/upgrade/connect。
-10. `AUTO_ACTION -> REPRO_TRACE`: 修正後重製追蹤。
-11. `REPRO_TRACE -> RUNTIME_PATCH_TEST`: 進行 runtime 改值驗證。
-12. `RUNTIME_PATCH_TEST -> REPORT`: 產生結論、證據包與 patch proposal。
+每個 note 必須包含：`run_id`, `target_id`, `phase`, `links`, `created_at`。

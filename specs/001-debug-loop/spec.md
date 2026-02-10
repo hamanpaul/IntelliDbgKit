@@ -1,157 +1,178 @@
-# Feature Specification: IntelliDbgKit Debug-Observe Core
+# Feature Specification: IntelliDbgKit PI Core Debug Hub
 
 **Feature Branch**: `001-debug-loop`  
-**Created**: 2026-02-09  
+**Created**: 2026-02-10  
 **Status**: Draft  
-**Input**: User description: "建立 Core+Plugin 的嵌入式除錯與觀測平台，先期整合 HLAPI/LLAPI 測試與 TraceZone，可追溯到 symbol 與 source map，支援多 Agent 收斂分析與 CI patch 建議"
+**Input**: User description: "以 PI 核心為中樞重構除錯平台，支援長記憶、壓縮降噪、技能化工作流與多 Agent 共識分析"
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - CLI 除錯閉環 (Priority: P1)
+### User Story 1 - PI Core 可控閉環 (Priority: P1)
 
-韌體工程師以 CLI 觸發單次測試，收集 TraceZone/UART/GDB/eBPF 資料，並在同一次 run 中得到可追溯 root-cause 候選與 patch 建議。
+韌體工程師可在不污染核心的前提下，完成一次 `測試 -> 追蹤 -> 分析 -> 修正建議` 閉環。
 
-**Why this priority**: 先建立最小可用除錯閉環，才能支撐後續 GUI 與多 Agent 擴充。
+**Why this priority**: 若核心邊界不先鎖定，後續插件擴張會破壞可維護性與可信度。
 
-**Independent Test**: 使用單一 HLAPI 測項執行一次 run，驗證可輸出 trace、symbol 對齊結果、root-cause 卡片、patch 建議。
+**Independent Test**: 單次 run 完成後，核心狀態只由狀態機與事件匯流排改變，插件無直接寫入核心資料。
 
 **Acceptance Scenarios**:
 
-1. **Given** 已設定 target 與 collector，**When** 執行 CLI 測試 run，**Then** 系統建立完整 run artifact（trace、symbol index、分析報告）。
-2. **Given** run 失敗，**When** 進入分析階段，**Then** 系統輸出至少一個含證據鏈的 root-cause 候選。
-3. **Given** root-cause 候選成立，**When** 產出修正建議，**Then** 系統輸出可審核 patch proposal（不自動合併）。
+1. **Given** 插件註冊成功，**When** 執行 run，**Then** 插件只能透過 EventBus 與 WorkflowAction 影響流程。
+2. **Given** 插件嘗試直寫核心狀態，**When** 核心邊界檢查啟用，**Then** 系統拒絕並記錄違規事件。
 
 ---
 
-### User Story 2 - 統一插件介面與跨工具封裝 (Priority: P1)
+### User Story 2 - Trace 養分化與長記憶升級 (Priority: P1)
 
-平台工程師透過單一 wrapper 入口整合 UART/ADB/SSH/Telnet/本機工具，對上只暴露統一 API，避免工具參數不相容擴散到核心流程。
+每次 trace flow 都可作為知識養分，經過壓縮與驗證後升級為長記憶。
 
-**Why this priority**: 無統一介面會導致插件不相容，後期擴充成本不可控。
+**Why this priority**: 長期除錯效率依賴歷史案例沉澱，不可只靠短期上下文。
 
-**Independent Test**: 對同一個 `CommandIntent` 分別走 UART 與 SSH provider，皆能得到一致語意結果與標準化回傳。
+**Independent Test**: 同類問題跨兩次 run 重現且共識分數達門檻，成功寫入 long-memory；不達標不得升級。
 
 **Acceptance Scenarios**:
 
-1. **Given** 동일 intent，**When** 指向不同 provider，**Then** 執行結果以同一 `ExecResult` schema 回傳。
-2. **Given** provider 不支援某 capability，**When** 執行命令，**Then** 回傳結構化不支援原因，不得 silent fallback。
+1. **Given** candidate memory 產生，**When** `repro_count >= 2` 且 `consensus_score >= threshold`，**Then** 升級到 long-memory。
+2. **Given** 只符合單一條件，**When** 執行升級流程，**Then** 記錄為 pending，不得寫入 long-memory。
 
 ---
 
-### User Story 3 - GUI 回放與下鑽分析 (Priority: P2)
+### User Story 3 - 四層壓縮與可逆反譯 (Priority: P1)
 
-工程師在 Host 端 GUI 觀看 HLAPI→LLAPI 時序，並基於 TraceZone 先行顯示 func flow，能對節點進行下鑽查看關聯證據。
+平台對 trace 做四層壓縮以濾除雜訊，但保留可逆反譯能力與證據鏈。
 
-**Why this priority**: 可視化降低追問題認知負荷，是導入多工具流程的主要使用者價值。
+**Why this priority**: 降噪是規模化分析前提，但不可破壞可追溯性。
 
-**Independent Test**: 對單次 run 開啟 GUI timeline，能播放、定位節點、查看對應 evidence 與 source map 關聯。
+**Independent Test**: 壓縮後資料可反譯回原語意；關鍵行為證據不可遺失。
 
 **Acceptance Scenarios**:
 
-1. **Given** 已完成 run，**When** 開啟 GUI timeline，**Then** 可看到 HLAPI→LLAPI 事件流與 TraceZone 函式流。
-2. **Given** 點擊節點，**When** 執行下鑽，**Then** 顯示對應 symbol、來源檔位址、相關 trace 與 root-cause 關聯。
+1. **Given** 重複事件流，**When** 執行去重與語意聚合，**Then** 事件量下降且關鍵路徑完整。
+2. **Given** 已壓縮紀錄，**When** 執行反譯，**Then** 還原文字與原始語意一致。
 
 ---
 
-### User Story 4 - HLAPI 測試知識匯入與探勘 (Priority: P2)
+### User Story 4 - 技能化工作流 (Priority: P2)
 
-測試工程師先使用既有 xlsx 測試報告建立 HLAPI 測試 markdown 資料庫；中後期再由 target 自動探勘支援 HLAPI 並回填同一模型。
+speckit 規劃的工具能力被封裝為可調度 skill/workflow，透過核心 workflow runtime 依序執行。
 
-**Why this priority**: 先利用既有測試資產可快速啟動，後續探勘可降低人工維護成本。
+**Why this priority**: 工具散落會造成流程不一致，技能化可提升重用與治理。
 
-**Independent Test**: 使用指定 xlsx 建立 markdown + machine index；再跑 discovery 原型新增至少一筆新 HLAPI 記錄。
+**Independent Test**: 單次 run 至少可執行 `trace-capture-flow`, `root-cause-flow`, `patch-proposal-flow` 並產生標準輸出。
 
 **Acceptance Scenarios**:
 
-1. **Given** `6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx`，**When** 執行匯入，**Then** 產生每個測試 sheet 的 markdown 清單與索引。
-2. **Given** target 具 CLI/ubus 探測能力，**When** 執行 discovery，**Then** 新發現 API 記錄可追溯到採集來源與時間。
+1. **Given** workflow 定義存在，**When** 觸發 flow，**Then** 各 step 依 guard 條件執行並可審計。
+2. **Given** step 缺少前置證據，**When** workflow runtime 判定，**Then** flow 進入 blocked 狀態並回報缺口。
 
 ---
 
-### User Story 5 - 多 Agent 收斂分析 (Priority: P3)
+### User Story 5 - 多 Agent 共識與否決 (Priority: P2)
 
-主控代理透過 Copilot SDK 平行調度 codex/copilot/gemini 等子代理，收集結構化證據，最後輸出單一共識結論與異議列表。
+主控代理平行調度多代理分析，遇到關鍵證據不足時必須否決，不可強行輸出結論。
 
-**Why this priority**: 跨模型交叉驗證可降低單模型誤判，提升 root-cause 可信度。
+**Why this priority**: 錯誤確定性結論比無結論更危險。
 
-**Independent Test**: 同一事件由至少兩個代理輸出不同結論，系統仍可產生可審核共識結果與 dissent。
+**Independent Test**: 衝突案例可產生 weighted result；關鍵證據缺失時產生 `vetoed=true`。
 
 **Acceptance Scenarios**:
 
-1. **Given** 多代理平行分析，**When** 證據衝突，**Then** 主控代理輸出加權結果與衝突來源。
-2. **Given** 證據不足，**When** 收斂流程結束，**Then** 標記為未收斂並要求更多觀測資料，不得輸出確定性結論。
+1. **Given** 多代理結果衝突，**When** 收斂執行，**Then** 輸出 winning claim 與 dissent 清單。
+2. **Given** 缺關鍵證據，**When** 收斂完成，**Then** 輸出 veto 記錄並要求補觀測資料。
+
+---
+
+### User Story 6 - 可視化與知識面一致 (Priority: P3)
+
+GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面可直接回鏈到 trace 與結論。
+
+**Why this priority**: 減少認知負荷並提高跨人員傳遞效率。
+
+**Independent Test**: GUI 節點點擊可打開對應 evidence 與 Obsidian 卡片；卡片反向連回 run。
+
+**Acceptance Scenarios**:
+
+1. **Given** 已完成 run，**When** 在 GUI 下鑽，**Then** 可看到 symbol/source/evidence/consensus 關聯。
+2. **Given** 在 Obsidian 開啟 root-cause 卡片，**When** 點擊回鏈，**Then** 可回到 run 與關鍵 trace。
 
 ---
 
 ### Edge Cases
 
-- collector 中途失聯（UART cable reset、gdb session drop、probe attach fail）。
-- 同名命令跨 provider 參數不相容，需經 adapter 映射後才可執行。
-- 行為結果一致但統計量（pkt/cpu/memory）有抖動，需套用分層一致性判定。
-- 部分 target 不支援 eBPF，需降級到 TraceZone + GDB + UART 模式。
-- 測試資料欄位含換行或合併儲存格，xlsx 匯入需保留語意且可追溯原列。
-- 敏感資訊欄位（密碼、token）需在輸出報告自動遮罩。
+- collector 中途失聯（UART reset、gdb detach、probe attach fail）。
+- 某 target 不支援 eBPF，流程需自動降級到 TraceZone + GDB + UART。
+- 事件壓縮後語意歧義，必須回退到上一壓縮層再分析。
+- 同名 command 在不同 provider 參數衝突，需靠 adapter 映射處理。
+- 多代理全數低信心或互斥，系統需標記未收斂而非輸出假結論。
+- 匯入測試資料含敏感字串時，必須遮罩後才可進知識庫。
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST 以 `symbol file` 作為靜態/動態關聯的主索引鍵之一。
-- **FR-002**: System MUST 提供單一事件匯流排與統一事件 schema，所有插件不得繞過。
-- **FR-003**: System MUST 支援 TraceZone、UART(serialwrap)、GDB、eBPF 作為 Phase 1 可接入 collector。
-- **FR-004**: System MUST 支援 `CommandIntent -> provider command -> ExecResult` 三段式 wrapper 流程。
-- **FR-005**: System MUST 支援 provider adapter（UART/ADB/SSH/Telnet/本機）能力聲明與健康檢查。
-- **FR-006**: System MUST 將 run 流程固化為可審計狀態機，含時間戳與狀態轉移原因。
-- **FR-007**: System MUST 產生 root-cause 候選，並附上可追溯 evidence links。
-- **FR-008**: System MUST 輸出 patch proposal，但 MUST NOT 自動 merge 到主分支。
-- **FR-009**: System MUST 在 GUI 顯示 HLAPI→LLAPI 回放與 TraceZone func call flow。
-- **FR-010**: System MUST 支援節點下鑽，顯示 symbol、source 위치、trace 關聯與共識結果。
-- **FR-011**: System MUST 以 Obsidian 原生結構寫入每日 run 摘要、root-cause 卡片、trace 索引。
-- **FR-012**: System MUST 維持 Obsidian note 與 machine index（JSON）雙軌一致性。
-- **FR-013**: System MUST 支援從 `docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx` 的 `QoS_LLAPI` 後續 sheets 轉成 markdown 測試資料。
-- **FR-014**: System MUST 保留 xlsx row-level lineage（sheet 名稱、row 編號、欄位映射）。
-- **FR-015**: System MUST 提供 HLAPI discovery 最小原型，可從 target 收集支援 API 並回填資料模型。
-- **FR-016**: System MUST 支援多 Agent 平行分析與結構化證據交換（非完整上下文互傳）。
-- **FR-017**: System MUST 提供共識引擎，輸出 weighted conclusion 與 dissent 記錄。
-- **FR-018**: System MUST 以分層門檻驗證重製一致性（行為/控制流/統計分開判定）。
-- **FR-019**: System MUST 對敏感欄位做遮罩後再進入報告或知識庫。
-- **FR-020**: System MUST 保留 CLI-first 操作，GUI 不得成為唯一入口。
-- **FR-021**: System MUST 提供 CI 可用 evidence bundle（trace、index、consensus、patch proposal）。
-- **FR-022**: System MUST 支援 plugin 版本相容性檢查，阻止不相容插件註冊。
-- **FR-023**: System MUST 對不支援能力提供結構化錯誤碼與替代建議。
-- **FR-024**: System MUST 排除影音/素材處理、風格化/比例化、自動剪接、音樂/歌詞生成等非本案能力。
+- **FR-001**: System MUST 實作 PI Core，核心僅含狀態機、事件匯流排、證據收斂、工作流執行器。
+- **FR-002**: System MUST 禁止插件直接寫入核心狀態與 long-memory。
+- **FR-003**: System MUST 透過統一 `TraceEvent` schema 管理所有插件輸入輸出。
+- **FR-004**: System MUST 以 `symbol file` 作為靜態/動態關聯主索引之一。
+- **FR-005**: System MUST 支援 TraceZone、UART(serialwrap)、GDB、eBPF collector（可降級）。
+- **FR-006**: System MUST 支援 `CommandIntent -> provider adapter -> ExecResult` 單一命令語意流程。
+- **FR-007**: System MUST 實作 provider capability matrix 與健康檢查。
+- **FR-008**: System MUST 將 run 固化為可審計狀態機，含每次轉移原因。
+- **FR-009**: System MUST 實作四層壓縮：去重、語意聚合、跨 run 摘要、語意壓縮。
+- **FR-010**: System MUST 支援語意壓縮查表與反譯（可逆）。
+- **FR-011**: System MUST 在壓縮後保留證據鏈與原始索引引用。
+- **FR-012**: System MUST 將記憶分為 `raw`, `working`, `candidate`, `long` 四層。
+- **FR-013**: System MUST 僅在 `repro_count >= 2` 且 `consensus_score >= threshold` 時升級 long-memory。
+- **FR-014**: System MUST 對未達升級條件的候選記憶標記 pending 並保存原因。
+- **FR-015**: System MUST 將 speckit 工具能力以 skill/workflow 方式註冊與調度。
+- **FR-016**: System MUST 提供 workflow guard 條件與 blocked 狀態回報。
+- **FR-017**: System MUST 支援多 Agent 平行分析與結構化證據交換。
+- **FR-018**: System MUST 實作加權收斂與否決條件（veto）。
+- **FR-019**: System MUST 在 veto 時輸出補觀測指令，不得輸出確定性 root cause。
+- **FR-020**: System MUST 在 GUI 顯示 HLAPI->LLAPI 回放與 TraceZone func flow。
+- **FR-021**: System MUST 支援 GUI 節點下鑽到 symbol/source/evidence/consensus。
+- **FR-022**: System MUST 以 Obsidian 原生結構保存 run 與 long-memory，並維持雙向連結。
+- **FR-023**: System MUST 保留 machine index 供程式查詢與重放。
+- **FR-024**: System MUST 支援從 `QoS_LLAPI` 起所有 sheet 匯入 HLAPI 測試資料。
+- **FR-025**: System MUST 保留 xlsx row-level lineage（file/sheet/row/header mapping）。
+- **FR-026**: System MUST 提供 target HLAPI discovery 最小原型並回填同一資料模型。
+- **FR-027**: System MUST 對敏感資料先遮罩再寫入報告與知識庫。
+- **FR-028**: System MUST 在 CI 產出 evidence bundle 與 patch proposal。
+- **FR-029**: System MUST NOT 自動 merge 修正到主分支。
+- **FR-030**: System MUST 排除影音素材處理、風格化、剪輯與音樂歌詞生成能力。
 
 ### Key Entities *(include if feature involves data)*
 
-- **ProjectRun**: 單次測試與除錯閉環執行單位，包含狀態機、target、artifact 路徑。
-- **TraceEvent**: 事件匯流排的最小交換單元，承載 phase/tool/symbol/address/payload。
-- **SourceMapNode / SourceMapEdge**: 靜態與動態關聯圖節點/邊，支援下鑽與可視化。
-- **CommandIntent**: 對上統一語意命令，對下映射到 provider-specific 指令。
-- **ExecResult**: provider 執行回傳，含 stdout/stderr/rc/latency/normalized fields。
-- **HLAPITestCase**: 從 xlsx 轉入的測試案例，保留欄位語意與來源 lineage。
-- **HLAPIDiscoveryRecord**: 從 target 自動探勘得到的 API 支援記錄。
-- **EvidenceRecord**: 子代理分析產生的結構化證據。
-- **ConsensusRecord**: 主控代理收斂後的最終判定與異議集合。
-- **PatchProposal**: 可審核修正建議，連結到對應 evidence 與 run。
+- **ProjectRun**: 單次除錯閉環執行單位。
+- **TraceEvent**: 匯流排標準事件。
+- **CommandIntent / ExecResult**: 跨 provider 的語意命令與結果。
+- **MemoryRecord**: 記憶層級資料單元（raw/working/candidate/long）。
+- **MemoryPromotionDecision**: 記憶升級判定紀錄。
+- **CompressionLexiconEntry**: 壓縮映射字典條目。
+- **WorkflowDefinition / WorkflowRun**: 技能化流程定義與執行紀錄。
+- **EvidenceRecord / ConsensusRecord / VetoReason**: 多代理證據、收斂與否決資訊。
+- **HLAPITestCase / HLAPIDiscoveryRecord**: 測試案例與探勘記錄。
+- **PatchProposal**: 可審核修正建議。
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: 針對單一 P1 測項，工程師可在 15 分鐘內完成一次 `run -> 分析 -> 報告` 閉環。
-- **SC-002**: Phase 1 工具鏈（TraceZone/UART/GDB/eBPF）在可用環境下可成功接入率達 95% 以上。
-- **SC-003**: 重製一致性採分層判定：行為類 100%、控制流拓樸 100%、統計類 >= 80%。
-- **SC-004**: 每個 root-cause 結論都能回溯到至少 2 條 evidence references。
-- **SC-005**: GUI 回放可覆蓋 100% 的 HLAPI→LLAPI 事件序列，且節點下鑽成功率達 95%。
-- **SC-006**: xlsx 匯入後，`QoS_LLAPI` 起各 sheet 的案例轉換完整率 100%，欄位 lineage 缺失率 0%。
-- **SC-007**: 多 Agent 共識流程對衝突案例可產出可審核 dissent 記錄比例 100%。
-- **SC-008**: CI pipeline 每次執行都可輸出 evidence bundle 與 patch proposal；自動 merge 次數必須為 0。
+- **SC-001**: 單一 P1 測項可在 15 分鐘內完成一次閉環分析與報告產出。
+- **SC-002**: 行為類一致性 100%，控制流拓樸一致性 100%，統計類一致性 >= 80%。
+- **SC-003**: 壓縮後事件量下降至少 40%，且關鍵路徑保留率 100%。
+- **SC-004**: 壓縮反譯語意等價率 100%（round-trip 驗證）。
+- **SC-005**: 候選記憶升級 long-memory 時，100% 具備雙條件判定紀錄。
+- **SC-006**: 多代理衝突案例 100% 產出 dissent 或 veto，不得靜默覆蓋。
+- **SC-007**: GUI 下鑽成功率 >= 95%，且每次下鑽可追溯到至少 2 條證據。
+- **SC-008**: xlsx 匯入完整率 100%，lineage 缺失率 0%。
+- **SC-009**: CI 每次均輸出 evidence bundle 與 patch proposal，auto-merge 次數固定為 0。
 
 ## Assumptions
 
-- `serialwrap` 已可直接於環境使用。
-- 使用者可提供先期 HLAPI/LLAPI 測試資料與初步通過條件。
-- 中後期可從 target 存取必要控制介面以執行 HLAPI discovery 原型。
+- `serialwrap` 可直接使用。
+- 可取得 TraceZone 與 target 基本控制介面。
+- 可提供初期 HLAPI/LLAPI 測試資料作為 baseline。
 
 ## Out of Scope
 
