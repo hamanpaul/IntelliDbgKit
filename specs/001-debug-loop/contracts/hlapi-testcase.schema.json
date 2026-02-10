@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intellidbgkit/contracts/hlapi-testcase.schema.json",
+  "title": "HLAPITestCase",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "source_file",
+    "source_sheet",
+    "source_row"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_sheet": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_row": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "object_path": {
+      "type": "string"
+    },
+    "parameter_name": {
+      "type": "string"
+    },
+    "hlapi_command": {
+      "type": "string"
+    },
+    "llapi_support": {
+      "type": "string"
+    },
+    "test_steps": {
+      "type": "string"
+    },
+    "command_output": {
+      "type": "string"
+    },
+    "result_status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "not-supported",
+        "skip",
+        "unknown"
+      ]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

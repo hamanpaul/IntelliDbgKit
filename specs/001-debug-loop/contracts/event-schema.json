@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intellidbgkit/contracts/event-schema.json",
+  "title": "TraceEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "run_id",
+    "ts_ns",
+    "phase",
+    "source",
+    "tool",
+    "target_id",
+    "severity",
+    "payload"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ts_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "BOOTSTRAP",
+        "TEST_LOOP",
+        "MONITOR",
+        "DETECT",
+        "CONDITION_ANALYSIS",
+        "REPRODUCE",
+        "DEBUG_ON",
+        "ANALYZE",
+        "ADV_TOOL_DECISION",
+        "AUTO_ACTION",
+        "REPRO_TRACE",
+        "RUNTIME_PATCH_TEST",
+        "REPORT",
+        "FAILED"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "host",
+        "target"
+      ]
+    },
+    "tool": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]+$"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warn",
+        "error",
+        "critical"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "semantic_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "compression_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tier",
+          "token",
+          "lexicon_id"
+        ],
+        "properties": {
+          "tier": {
+            "type": "string",
+            "enum": [
+              "dedup",
+              "aggregate",
+              "summary",
+              "semantic"
+            ]
+          },
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lexicon_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "target"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "event",
+              "evidence",
+              "note",
+              "symbol",
+              "workflow",
+              "memory",
+              "consensus"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

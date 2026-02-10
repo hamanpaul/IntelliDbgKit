@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intellidbgkit/contracts/compression-lexicon.schema.json",
+  "title": "CompressionLexiconBundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lexicon_version",
+    "entries"
+  ],
+  "properties": {
+    "lexicon_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "lexicon_id",
+          "token",
+          "original_pattern",
+          "reverse_rule",
+          "tier",
+          "created_at"
+        ],
+        "properties": {
+          "lexicon_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original_pattern": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reverse_rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "dedup",
+              "aggregate",
+              "summary",
+              "semantic"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "step_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_id",
+          "step",
+          "input_count",
+          "output_count",
+          "lossless",
+          "roundtrip_ok"
+        ],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "step": {
+            "type": "string",
+            "enum": [
+              "dedup",
+              "aggregate",
+              "summary",
+              "semantic"
+            ]
+          },
+          "input_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "output_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lossless": {
+            "type": "boolean"
+          },
+          "roundtrip_ok": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,375 @@
+:root {
+  color-scheme: dark light;
+  --bg: #11151c;
+  --surface: #1e2732;
+  --surface-2: #273444;
+  --surface-3: #131c27;
+  --text: #dce6f0;
+  --text-dim: #9fb0c3;
+  --accent: #44c2ff;
+  --ok: #5fe3a1;
+  --warn: #ffcc6a;
+  --danger: #ff7d7d;
+  --border: #3d4f64;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans TC", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+  background: var(--surface);
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.brand p {
+  margin: 3px 0 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.controls-wrap {
+  justify-content: flex-end;
+}
+
+.ctl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.ctl-wide {
+  min-width: 220px;
+}
+
+.ctl input,
+.controls button,
+.controls select {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.advanced-controls {
+  border-bottom: 1px solid var(--border);
+  background: #18212d;
+  padding: 8px 18px;
+}
+
+.advanced-controls details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #1b2531;
+}
+
+.advanced-controls summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #bdd0e3;
+  margin-bottom: 8px;
+}
+
+.stats {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  min-height: calc(100vh - 140px);
+}
+
+.panel {
+  padding: 12px;
+  overflow: auto;
+}
+
+.panel h2 {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+}
+
+.panel-main {
+  border-right: 1px solid var(--border);
+}
+
+.panel-side {
+  background: var(--surface-3);
+}
+
+.side-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #192331;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.side-card summary {
+  cursor: pointer;
+  color: #cfe0f2;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.mindmap {
+  width: 100%;
+  min-height: 620px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #121a24;
+  padding: 10px;
+  overflow: auto;
+}
+
+.mindmap-board {
+  position: relative;
+  min-height: 598px;
+}
+
+.mind-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  /* 線層需在 block 上方，避免被內容背景遮住而視覺上像「斷線」。 */
+  z-index: 4;
+}
+
+.mind-block {
+  position: absolute;
+  width: fit-content;
+  min-width: 0;
+  max-width: 560px;
+  border: 1px solid #4d637a;
+  border-radius: 10px;
+  background: #1f2d3f;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.24);
+  z-index: 2;
+  overflow: auto;
+}
+
+.mind-block h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #d5e7f9;
+  line-height: 1.35;
+}
+
+.mind-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: grab;
+  user-select: none;
+}
+
+.mindmap.dragging .mind-block-header {
+  cursor: grabbing;
+}
+
+.mind-collapse-btn {
+  border: 1px solid #4d637a;
+  border-radius: 6px;
+  background: #2a3a4e;
+  color: #d8e9fb;
+  font-size: 14px;
+  line-height: 1;
+  min-width: 24px;
+  min-height: 22px;
+  cursor: pointer;
+}
+
+.mind-block ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.mind-block li {
+  font-size: 12px;
+  color: #b9ccdf;
+  line-height: 1.3;
+}
+
+.mind-item-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #4d637a;
+  border-radius: 6px;
+  background: #273a50;
+  color: #dceeff;
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mind-item-btn.expanded {
+  border-color: #66d2ff;
+  background: #2d4761;
+}
+
+.mind-item-text {
+  display: block;
+  border: 1px solid #3e556c;
+  border-radius: 6px;
+  background: #1a2735;
+  color: #c5d9eb;
+  padding: 5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mind-block.root {
+  border-color: #66d2ff;
+  background: #24425f;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 480px;
+  overflow: auto;
+}
+
+.timeline-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+}
+
+.timeline-btn .time {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.timeline-btn .title {
+  font-size: 13px;
+}
+
+.timeline-btn .meta {
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.timeline-btn.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(68, 194, 255, 0.35) inset;
+}
+
+.hint {
+  margin: 8px 0 0 0;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #121a24;
+  padding: 10px;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.badge {
+  display: inline-block;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.b-info { color: var(--accent); }
+.b-ok { color: var(--ok); }
+.b-warn { color: var(--warn); }
+.b-danger { color: var(--danger); }
+
+.mono {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 12px;
+  color: #d9f2ff;
+}
+
+@media (max-width: 1380px) {
+  .topbar {
+    flex-direction: column;
+  }
+
+  .controls-wrap {
+    justify-content: flex-start;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .panel-main {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mindmap {
+    min-height: auto;
+  }
+
+  .mindmap-board {
+    min-height: 598px;
+  }
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IntelliDbgKit UI POC</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>IntelliDbgKit UI POC</h1>
+      <p>Mock API 驅動：HLAPI → LLAPI 回放 / Trace Flow 下鑽</p>
+    </div>
+    <div class="controls controls-wrap">
+      <label class="ctl">
+        <span>Run</span>
+        <select id="runSelect" aria-label="run select"></select>
+      </label>
+      <label class="ctl">
+        <span>HLAPI Path</span>
+        <select id="pathSelect" aria-label="hlapi path select"></select>
+      </label>
+      <button id="prevBtn" type="button">Prev</button>
+      <button id="playBtn" type="button">Play</button>
+      <button id="nextBtn" type="button">Next</button>
+      <select id="speedSelect" aria-label="playback speed">
+        <option value="1600">1x</option>
+        <option value="900">1.5x</option>
+        <option value="600">2x</option>
+      </select>
+      <span id="timelineStats" class="stats"></span>
+    </div>
+  </header>
+
+  <section class="advanced-controls">
+    <details>
+      <summary>Advanced Filters</summary>
+      <div class="controls">
+        <label class="ctl">
+          <span>Phase</span>
+          <select id="phaseSelect" aria-label="phase select">
+            <option value="ALL">ALL</option>
+          </select>
+        </label>
+        <label class="ctl">
+          <span>Tool</span>
+          <select id="toolSelect" aria-label="tool select">
+            <option value="ALL">ALL</option>
+          </select>
+        </label>
+        <label class="ctl ctl-wide">
+          <span>Keyword</span>
+          <input id="searchInput" type="text" placeholder="symbol / title / evidence">
+        </label>
+        <button id="applyFilterBtn" type="button">Apply</button>
+      </div>
+    </details>
+  </section>
+
+  <main class="layout">
+    <section class="panel panel-main">
+      <h2>Core Block Flow（Mind List）</h2>
+      <div id="graph" class="mindmap" role="img" aria-label="mind list graph"></div>
+      <p id="graphHint" class="hint"></p>
+    </section>
+
+    <section class="panel panel-side">
+      <details class="side-card" open>
+        <summary>Timeline Replay</summary>
+        <ul id="timeline" class="timeline"></ul>
+      </details>
+
+      <details class="side-card">
+        <summary>Drilldown</summary>
+        <div id="details" class="details"></div>
+      </details>
+    </section>
+  </main>
+
+  <template id="timelineItemTpl">
+    <li class="timeline-item">
+      <button type="button" class="timeline-btn">
+        <span class="time"></span>
+        <span class="title"></span>
+        <span class="meta"></span>
+      </button>
+    </li>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

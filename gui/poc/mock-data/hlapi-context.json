@@ -1,0 +1,244 @@
+{
+  "compile_context": {
+    "compile_commands_ref": "/home/paul_chen/arc_prj/compile_commands/PR65BE4445B-S-ZA-1b5d4586.json",
+    "entries_total": 40472,
+    "wld_or_radio_entries": 207,
+    "sample_entries": [
+      {
+        "file": "Utils/wld_linuxIfStats.c",
+        "directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src"
+      },
+      {
+        "file": "ApMgt/wld_ap_security.c",
+        "directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src"
+      },
+      {
+        "file": "RadMgt/wld_rad_stamon.c",
+        "directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src"
+      }
+    ]
+  },
+  "path_contexts": [
+    {
+      "path": "WiFi.AccessPoint.6.Security.EncryptionMode",
+      "odl_file": "/home/paul_chen/arc_prj/att-prpl/targets/968375GWO_WL25DX_WLMLO_OPENWRT_PRPL_FASTMCASTD/fs/etc/amx/wld/wld_accesspoint.odl",
+      "odl_line": 690,
+      "odl_entry_line": 541,
+      "object_scope": "Security",
+      "entry_function": "wld_ap_validateSecurity_ovf",
+      "source_mapping": {
+        "compile_command_file": "ApMgt/wld_ap_security.c",
+        "compile_command_directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src",
+        "source_file": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src/ApMgt/wld_ap_security.c",
+        "source_entry_line": 118,
+        "source_function": "_wld_ap_validateSecurity_ovf"
+      },
+      "siblings": [
+        "ModesSupported",
+        "ModesAvailable",
+        "WEPKey",
+        "PreSharedKey",
+        "KeyPassPhrase",
+        "RekeyingInterval",
+        "OWETransitionInterface",
+        "TransitionDisable",
+        "SAEPassphrase",
+        "EncryptionMode",
+        "SHA256Enable",
+        "RadiusServerIPAddr",
+        "RadiusServerPort",
+        "RadiusSecret",
+        "RadiusDefaultSessionTimeout",
+        "RadiusOwnIPAddress",
+        "RadiusNASIdentifier",
+        "RadiusCalledStationId",
+        "RadiusChargeableUserId",
+        "ModeEnabled",
+        "MFPConfig",
+        "SPPAmsdu"
+      ],
+      "source_outline": [
+        {
+          "kind": "statement",
+          "text": "swla_object_paramsToMap(&params, object);"
+        },
+        {
+          "kind": "statement",
+          "text": "modesAvailableMask = s_getFinalModesAvailable(modesSupportedMask, modesAvailableMask);"
+        },
+        {
+          "kind": "statement",
+          "text": "modeEnabledId = s_getFinalModeEnabled(modesAvailableMask, modeEnabledId);"
+        },
+        {
+          "kind": "statement",
+          "text": "switch(modeEnabledId) { ... key/radius validation ... }"
+        },
+        {
+          "kind": "statement",
+          "text": "return (valid ? amxd_status_ok : amxd_status_invalid_value);"
+        }
+      ],
+      "sibling_functions": [
+        {
+          "name": "s_setCommonSecurityConf_ocf",
+          "line": 461,
+          "outline": [
+            {
+              "kind": "loop",
+              "text": "amxc_var_for_each(newValue, newParamValues)",
+              "children": [
+                "pname = amxc_var_key(newValue);",
+                "if(swl_str_matches(pname, \"MFPConfig\")) { ... }",
+                "if(swl_str_matches(pname, \"EncryptionMode\")) { ... }",
+                "needSyncSec = true;"
+              ]
+            },
+            {
+              "kind": "statement",
+              "text": "if(needSyncSec) { wld_ap_sec_doSync(pAP); }"
+            }
+          ]
+        },
+        {
+          "name": "s_setModeEnabled_pwf",
+          "line": 323,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "finalModeId = s_getFinalModeEnabled(pAP->secModesAvailable, modeId);"
+            },
+            {
+              "kind": "statement",
+              "text": "pAP->secModeEnabled = finalModeId;"
+            },
+            {
+              "kind": "statement",
+              "text": "wld_ap_sec_doSync(pAP);"
+            }
+          ]
+        }
+      ],
+      "legacy_sample": {
+        "odl_entry": "Security{ on action validate call wld_ap_validateSecurity_ovf; }",
+        "snippet": [
+          "SWLA_DM_PARAM_HDLR(\"ModesAvailable\", s_setModesAvailable_pwf)",
+          "SWLA_DM_PARAM_HDLR(\"ModeEnabled\", s_setModeEnabled_pwf)",
+          ".objChangedCb = s_setCommonSecurityConf_ocf"
+        ]
+      }
+    },
+    {
+      "path": "WiFi.Radio.{i}.getRadioStats().BytesReceived",
+      "odl_file": "/home/paul_chen/arc_prj/att-prpl/targets/968375GWO_WL25DX_WLMLO_OPENWRT_PRPL_FASTMCASTD/fs/etc/amx/wld/wld_radio.odl",
+      "odl_entry_line": 354,
+      "odl_stats_line": 1540,
+      "entry_function": "getRadioStats()",
+      "source_mapping": {
+        "compile_command_file": "Utils/wld_linuxIfStats.c",
+        "compile_command_directory": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src",
+        "source_file": "/home/paul_chen/arc_prj/att-prpl/altsdk/openwrt/v23.05.3/build_dir/target-aarch64-buildroot-linux-gnu_glibc/pwhm-v7.6.29/src/Utils/wld_linuxIfStats.c",
+        "source_entry_line": 432,
+        "source_function": "wld_linuxIfStats_getRadioStats"
+      },
+      "source_outline": [
+        {
+          "kind": "statement",
+          "text": "ASSERT_NOT_NULL(pRadio, false, ME, \"NULL\");"
+        },
+        {
+          "kind": "statement",
+          "text": "ASSERT_NOT_NULL(pRadioStats, false, ME, \"NULL\");"
+        },
+        {
+          "kind": "statement",
+          "text": "bool result = false;"
+        },
+        {
+          "kind": "statement",
+          "text": "result |= wld_linuxIfStats_getAllVapStats(pRadio, pRadioStats);"
+        },
+        {
+          "kind": "statement",
+          "text": "result |= wld_linuxIfStats_getAllEpStats(pRadio, pRadioStats);"
+        },
+        {
+          "kind": "statement",
+          "text": "result |= wld_rad_getCurrentNoise(pRadio, &pRadioStats->noise);"
+        },
+        {
+          "kind": "statement",
+          "text": "return result;"
+        }
+      ],
+      "sibling_functions": [
+        {
+          "name": "wld_linuxIfStats_getAllVapStats",
+          "line": 368,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "ASSERT_NOT_NULL(pRadio, false, ME, \"NULL\");"
+            },
+            {
+              "kind": "statement",
+              "text": "ASSERT_NOT_NULL(pAllVapStats, false, ME, \"NULL\");"
+            },
+            {
+              "kind": "statement",
+              "text": "bool result = false;"
+            },
+            {
+              "kind": "loop",
+              "text": "for(amxc_llist_it_t* it = ... llAP ...)",
+              "children": [
+                "pAP = (T_AccessPoint*) amxc_llist_it_get_data(it, T_AccessPoint, it);",
+                "result |= wld_linuxIfStats_getVapStats(pAP, &interfaceStats);",
+                "s_accumulateStats(pAllVapStats, &interfaceStats);"
+              ]
+            },
+            {
+              "kind": "statement",
+              "text": "return result;"
+            }
+          ]
+        },
+        {
+          "name": "wld_linuxIfStats_getAllEpStats",
+          "line": 394,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "ASSERT_NOT_NULL(pRadio, false, ME, \"NULL\");"
+            },
+            {
+              "kind": "statement",
+              "text": "ASSERT_NOT_NULL(pAllEpStats, false, ME, \"NULL\");"
+            },
+            {
+              "kind": "loop",
+              "text": "for(amxc_llist_it_t* it = ... llEndPoints ...)",
+              "children": [
+                "if(pEP->index <= 0) { continue; }",
+                "if(!wld_linuxIfStats_getInterfaceStats(pEP->Name, &interfaceStats)) { continue; }",
+                "s_accumulateStats(pAllEpStats, &interfaceStats);"
+              ]
+            },
+            {
+              "kind": "statement",
+              "text": "return result;"
+            }
+          ]
+        }
+      ],
+      "legacy_sample": {
+        "odl_entry": "_getRadioStats()",
+        "snippet": [
+          "amxd_object_t* stats = amxd_object_get(object, \"Stats\");",
+          "swl_rc_ne rc = s_updateRadioStatsValues(stats);",
+          "ASSERT_TRUE(swl_rc_isOk(rc), amxd_status_unknown_error, ME, \"fail to update radio stats\");"
+        ]
+      }
+    }
+  ]
+}
