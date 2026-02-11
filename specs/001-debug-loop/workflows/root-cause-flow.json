@@ -1,0 +1,42 @@
+{
+  "workflow_id": "root-cause-flow",
+  "version": "0.1.0",
+  "name": "Root Cause Flow",
+  "trigger": {
+    "type": "manual",
+    "value": "idk workflow run root-cause-flow"
+  },
+  "steps": [
+    {
+      "step_id": "rc-01",
+      "name": "Load trace evidence",
+      "plugin_ref": "evidence.reader",
+      "action": "load",
+      "guards": [
+        "g-trace-captured"
+      ]
+    },
+    {
+      "step_id": "rc-02",
+      "name": "Generate hypothesis",
+      "plugin_ref": "analyzer.root_cause",
+      "action": "analyze"
+    }
+  ],
+  "guards": [
+    {
+      "guard_id": "g-trace-captured",
+      "expression": "has_evidence:trace.captured",
+      "on_block": "halt",
+      "reason": "missing evidence trace.captured"
+    }
+  ],
+  "outputs": [
+    "root_cause.hypothesis"
+  ],
+  "core_boundary_policy": "event-bus-only",
+  "metadata": {
+    "phase": "phase1a",
+    "status": "skeleton"
+  }
+}

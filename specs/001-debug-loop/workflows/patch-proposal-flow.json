@@ -1,0 +1,31 @@
+{
+  "workflow_id": "patch-proposal-flow",
+  "version": "0.1.0",
+  "name": "Patch Proposal Flow",
+  "trigger": {
+    "type": "manual",
+    "value": "idk workflow run patch-proposal-flow"
+  },
+  "steps": [
+    {
+      "step_id": "pp-01",
+      "name": "Load consensus",
+      "plugin_ref": "consensus.reader",
+      "action": "load"
+    },
+    {
+      "step_id": "pp-02",
+      "name": "Draft patch proposal",
+      "plugin_ref": "patch.engine",
+      "action": "propose"
+    }
+  ],
+  "outputs": [
+    "patch.proposal"
+  ],
+  "core_boundary_policy": "event-bus-only",
+  "metadata": {
+    "phase": "phase1a",
+    "status": "skeleton"
+  }
+}

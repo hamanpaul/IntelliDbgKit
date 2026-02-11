@@ -1,0 +1,31 @@
+{
+  "workflow_id": "memory-promote-flow",
+  "version": "0.1.0",
+  "name": "Memory Promote Flow",
+  "trigger": {
+    "type": "manual",
+    "value": "idk workflow run memory-promote-flow"
+  },
+  "steps": [
+    {
+      "step_id": "mp-01",
+      "name": "Load candidate memory",
+      "plugin_ref": "memory.reader",
+      "action": "load"
+    },
+    {
+      "step_id": "mp-02",
+      "name": "Evaluate promotion gate",
+      "plugin_ref": "memory.promotion",
+      "action": "evaluate"
+    }
+  ],
+  "outputs": [
+    "memory.promote.decision"
+  ],
+  "core_boundary_policy": "event-bus-only",
+  "metadata": {
+    "phase": "phase1a",
+    "status": "skeleton"
+  }
+}

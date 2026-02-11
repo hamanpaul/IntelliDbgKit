@@ -53,20 +53,46 @@ python3 -m src.cli.commands.hlapi_discovery \
   --output /tmp/idk-discovery-output.json
 ```
 
-## 5) Run Skill Workflows
+## 5) Run Lifecycle（Phase 2 骨架）
 
 ```bash
-idk workflow run trace-capture-flow --run-id <run_id>
-idk workflow run root-cause-flow --run-id <run_id>
-idk workflow run patch-proposal-flow --run-id <run_id>
+python3 -m src.cli.main run start \
+  --project "$IDK_PROJECT" \
+  --target "$IDK_TARGET" \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --format json
+
+python3 -m src.cli.main run status \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --format json
+
+python3 -m src.cli.main run stop \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --reason "manual close" \
+  --format json
 ```
 
-> 註：`idk run start` 與完整 workflow runtime 屬後續 phase，Phase 1A 先完成 ToolCard/命令註冊核心。
+## 5.1) Workflow Skeleton（Phase 2 骨架）
+
+```bash
+python3 -m src.cli.main workflow list --format json
+python3 -m src.cli.main workflow show trace-capture-flow --format json
+python3 -m src.cli.main workflow run trace-capture-flow --run-id run-sample-001 --run-root /tmp/idk-runs --format json
+python3 -m src.cli.main workflow run root-cause-flow --run-id run-sample-001 --run-root /tmp/idk-runs --evidence trace.captured --format json
+```
 
 ## 6) Analyze Multi-Agent Consensus
 
 ```bash
-idk analyze consensus --run-id <run_id> --agents codex,copilot,gemini
+python3 -m src.cli.main analyze consensus \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --agents codex,copilot,gemini \
+  --required-evidence trace.captured \
+  --format json
 ```
 
 Expected:
@@ -88,7 +114,11 @@ Promotion condition:
 ## 8) Compression Roundtrip Check
 
 ```bash
-idk verify compression --run-id <run_id> --roundtrip
+python3 -m src.cli.main verify compression \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --roundtrip \
+  --format json
 ```
 
 ## 9) Serve GUI
@@ -106,8 +136,15 @@ GUI minimum:
 ## 10) CI-safe Outputs
 
 ```bash
-idk report evidence-bundle --run-id <run_id>
-idk patch suggest --run-id <run_id>
+python3 -m src.cli.main report evidence-bundle \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --format json
+
+python3 -m src.cli.main patch suggest \
+  --run-id run-sample-001 \
+  --run-root /tmp/idk-runs \
+  --format json
 ```
 
 Policy:

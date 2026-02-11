@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, UTC
 from enum import Enum
+from typing import Any
 
 
 class CorePhase(str, Enum):
@@ -29,11 +30,32 @@ class TransitionAudit:
     reason: str
     at: str
 
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "from_phase": self.from_phase.value,
+            "to_phase": self.to_phase.value,
+            "reason": self.reason,
+            "at": self.at,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "TransitionAudit":
+        return cls(
+            from_phase=CorePhase(payload["from_phase"]),
+            to_phase=CorePhase(payload["to_phase"]),
+            reason=str(payload["reason"]),
+            at=str(payload["at"]),
+        )
+
 
 class CoreStateMachine:
-    def __init__(self) -> None:
-        self._phase = CorePhase.BOOTSTRAP
-        self._audits: list[TransitionAudit] = []
+    def __init__(
+        self,
+        initial_phase: CorePhase = CorePhase.BOOTSTRAP,
+        audits: list[TransitionAudit] | None = None,
+    ) -> None:
+        self._phase = initial_phase
+        self._audits = list(audits or [])
 
     @property
     def phase(self) -> CorePhase:
@@ -53,3 +75,16 @@ class CoreStateMachine:
         self._phase = to_phase
         self._audits.append(record)
         return record
+
+    def snapshot(self) -> dict[str, Any]:
+        return {
+            "phase": self.phase.value,
+            "audits": [item.to_dict() for item in self._audits],
+        }
+
+    @classmethod
+    def from_snapshot(cls, payload: dict[str, Any]) -> "CoreStateMachine":
+        phase = CorePhase(str(payload.get("phase", CorePhase.BOOTSTRAP.value)))
+        audits_payload = payload.get("audits", [])
+        audits = [TransitionAudit.from_dict(item) for item in audits_payload]
+        return cls(initial_phase=phase, audits=audits)
