@@ -61,6 +61,34 @@
 | normalized | object | N | 正規化結果 |
 | error_code | string | N | 結構化錯誤 |
 
+### 1.5 ToolCard
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| tool_id | string | Y | 工具唯一識別 |
+| category | enum | Y | `collector/analyzer/actuator/workflow/support` |
+| description | string | Y | 工具用途說明 |
+| examples | array<string> | Y | 最小可執行範例 |
+| help_command | string | Y | 取得工具 help 的命令 |
+| input_schema_ref | string | N | 輸入契約參照 |
+| output_schema_ref | string | N | 輸出契約參照 |
+| risk_level | enum | Y | `low/medium/high` |
+| adapter | string | Y | 正規化 adapter 名稱 |
+| aliases | array<string> | N | busybox-link 風格別名 |
+| status | enum | Y | `healthy/degraded/blocked` |
+
+### 1.6 ToolCatalogEntry
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| tool_id | string | Y | 關聯 ToolCard |
+| version | string | Y | 版本 |
+| owner | string | N | 維護者 |
+| source | string | Y | `native/wrapper/mcp/remote` |
+| capabilities | array<string> | Y | 能力標籤 |
+| health_last_checked_at | datetime | N | 最近健康檢查時間 |
+| health_reason | string | N | degraded/blocked 理由 |
+
 ## 2. Memory Domain
 
 ### 2.1 MemoryRecord
@@ -233,6 +261,8 @@
 - `ConsensusRecord (1) -> (N) PatchProposal`
 - `TraceEvent (N) <-> (N) CompressionLexiconEntry`
 - `HLAPITestCase (N) <-> (N) TraceEvent`
+- `WorkflowDefinition.steps.plugin_ref (N) -> (1) ToolCard.tool_id`
+- `ToolCard.tool_id (1) -> (1) ToolCatalogEntry.tool_id`
 
 ## 8. Validation Rules
 
@@ -244,6 +274,9 @@
 4. `CompressionStepResult.roundtrip_ok` 必須為 true 才能進入下一步分析。
 5. veto 發生時 `ConsensusRecord.winning_claim` 可為空，但 `veto_reasons` 不可空。
 6. `HLAPITestCase` 必須保留 file/sheet/row lineage 欄位。
+7. `WorkflowDefinition.steps.plugin_ref` 必須可在 ToolCatalog 中解析。
+8. `ToolCard.status != healthy` 時不得被自動 workflow step 執行。
+9. `ToolCard.examples` 至少 1 筆，且 `help_command` 不可空。
 
 ## 9. Obsidian Mapping
 

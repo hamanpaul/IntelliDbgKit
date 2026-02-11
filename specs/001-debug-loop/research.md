@@ -65,3 +65,14 @@
 - **Alternatives considered**:
   - JSON 主存再轉 markdown：偏離使用流程。
   - 純 markdown 無索引：大規模查詢效率不足。
+
+## Decision 7: ToolCard 命令導引模型
+
+- **Decision**: 以 `ToolCard(description/examples/help + I/O 契約 + risk + health)` 作為工具治理中樞。
+- **Rationale**:
+  - 工具主要供 Agent 使用，但需保留可讀說明供人工介入。
+  - wrapper/adaptor 可吸收外部工具介面差異，核心維持穩定語意。
+  - 可支援 busybox-link 風格 alias，避免上層 workflow 被工具碎片化。
+- **Alternatives considered**:
+  - 只靠 README 描述：缺乏機器可讀契約與健康治理。
+  - 直接綁單一命令：難以替換 provider 與跨環境重用。

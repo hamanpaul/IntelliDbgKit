@@ -1,12 +1,12 @@
 PYTHON ?= python3
 
-.PHONY: test contract-check ui-poc hlapi-import hlapi-discovery-sample
+.PHONY: test contract-check ui-poc hlapi-import hlapi-discovery-sample cli-tools
 
 test:
 	$(PYTHON) -m unittest discover -s tests -p "test_*.py"
 
 contract-check:
-	@fd . /home/paul_chen/IntelliDbgKit/specs/001-debug-loop/contracts -e json -t f | sort | xargs -I{} jq empty "{}"
+	@/home/paul_chen/.local/bin/fd . /home/paul_chen/IntelliDbgKit/specs/001-debug-loop/contracts -e json -t f | sort | xargs -I{} /usr/bin/jq empty "{}"
 
 ui-poc:
 	cd /home/paul_chen/IntelliDbgKit/gui/poc && $(PYTHON) -m http.server 8080
@@ -24,3 +24,6 @@ hlapi-discovery-sample:
 		--target-id board-01 \
 		--input /tmp/idk-discovery-input.txt \
 		--output /tmp/idk-discovery-output.json
+
+cli-tools:
+	$(PYTHON) -m src.cli.main tools list

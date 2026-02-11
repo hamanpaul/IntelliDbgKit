@@ -37,6 +37,19 @@
 
 ---
 
+## Phase 1A: CLI ToolCard Core
+
+- [x] T006A [CORE] 建立 `src/cli/tool_card.py`（description/examples/help 契約）。
+- [x] T006B [CORE] 建立 `src/cli/command_registry.py`（命令註冊、alias 映射、health 狀態）。
+- [x] T006C [CORE] 建立 `src/cli/main.py`（`idk tools list/show/doctor` 最小可用）。
+- [x] T006D [P] [CORE] 整合既有 `hlapi_ingest`、`hlapi_discovery` 到同一命令目錄。
+- [x] T006E [P] [CORE] Unit test：`tests/unit/test_cli_tool_registry.py`
+- [x] T006F [P] [CORE] Integration test：`tests/integration/test_cli_tools_commands.py`
+
+**Checkpoint**: 所有已註冊工具皆可透過 `description/examples/help` 被 Agent 與人類一致調用。
+
+---
+
 ## Phase 2: Memory Lifecycle
 
 - [ ] T007 [MEM] 實作 `memory_store.py`（raw/working/candidate/long）。
@@ -140,3 +153,4 @@
 - [x] S1-2 完成 T001、T003（core boundary + event bus 最小實作）。
 - [x] S1-3 完成 T005、T006（contract + boundary integration tests）。
 - [ ] S1-4 產出第一版 run artifact（最小 `TraceEvent` 流）。
+- [x] S1-5 完成 T006A~T006F（CLI ToolCard Core）。

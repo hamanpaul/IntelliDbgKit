@@ -14,20 +14,19 @@ export IDK_VAULT="/path/to/obsidian_vault"
 export IDK_TARGET="board-01"
 ```
 
-## 3) Start a Run
+## 3) Tool Catalog（Phase 1A 現況）
 
 ```bash
-idk run start \
-  --project "$IDK_PROJECT" \
-  --target "$IDK_TARGET" \
-  --collectors tracezone,uart,gdb,ebpf
+python3 -m src.cli.main tools list
+python3 -m src.cli.main tools show hlapi.ingest
+python3 -m src.cli.main tools doctor
 ```
 
 Expected:
 
-- `vault/<project>/<run>/notes/run-summary.md`
-- `vault/<project>/<run>/assets/events.raw.jsonl`
-- `vault/<project>/<run>/index/run.json`
+- 可列出工具 `description/examples/help`
+- 可顯示工具健康狀態 `healthy/degraded/blocked`
+- 可確認 alias 與 wrapper 映射資訊
 
 ## 4) Import HLAPI Baseline
 
@@ -61,6 +60,8 @@ idk workflow run trace-capture-flow --run-id <run_id>
 idk workflow run root-cause-flow --run-id <run_id>
 idk workflow run patch-proposal-flow --run-id <run_id>
 ```
+
+> 註：`idk run start` 與完整 workflow runtime 屬後續 phase，Phase 1A 先完成 ToolCard/命令註冊核心。
 
 ## 6) Analyze Multi-Agent Consensus
 
