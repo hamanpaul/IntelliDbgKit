@@ -1,0 +1,31 @@
+{
+  "workflow_id": "patch-verify-flow",
+  "version": "0.1.0",
+  "name": "Patch Verify Flow",
+  "trigger": {
+    "type": "manual",
+    "value": "idk workflow run patch-verify-flow"
+  },
+  "steps": [
+    {
+      "step_id": "pv-01",
+      "name": "Build candidate",
+      "plugin_ref": "build.runner",
+      "action": "build"
+    },
+    {
+      "step_id": "pv-02",
+      "name": "Replay testcase",
+      "plugin_ref": "test.replay",
+      "action": "replay"
+    }
+  ],
+  "outputs": [
+    "patch.verify.result"
+  ],
+  "core_boundary_policy": "event-bus-only",
+  "metadata": {
+    "phase": "phase1a",
+    "status": "skeleton"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "workflow_id": "trace-capture-flow",
+  "version": "0.1.0",
+  "name": "Trace Capture Flow",
+  "trigger": {
+    "type": "manual",
+    "value": "idk workflow run trace-capture-flow"
+  },
+  "steps": [
+    {
+      "step_id": "capture-01",
+      "name": "Capture trace baseline",
+      "plugin_ref": "tracezone.collector",
+      "action": "capture"
+    },
+    {
+      "step_id": "capture-02",
+      "name": "Normalize trace payload",
+      "plugin_ref": "trace.normalizer",
+      "action": "normalize"
+    }
+  ],
+  "outputs": [
+    "trace.raw",
+    "trace.normalized"
+  ],
+  "core_boundary_policy": "event-bus-only",
+  "metadata": {
+    "phase": "phase1a",
+    "status": "skeleton"
+  }
+}
