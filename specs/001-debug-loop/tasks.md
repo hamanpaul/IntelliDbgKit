@@ -100,7 +100,7 @@
 
 ## Phase 6: Debug Stack and HLAPI Ingestion
 
-- [ ] T027 [HLAPI] TraceZone/UART/GDB/eBPF collector 接入。
+- [ ] T027 [HLAPI] 以 `serialwrapd + serialwrap-mcp` 接入 TraceZone/UART/eBPF collector（`health->list->state->submit->tail` + raw/wal evidence），GDB 作為 optional provider。
 - [x] T028 [HLAPI] `xlsx_loader.py` 與 `hlapi_writer.py` 正規化匯入。
 - [x] T029 [HLAPI] HLAPI discovery 最小原型接入。
 - [x] T030 [P] [HLAPI] Unit test：`tests/unit/test_xlsx_to_markdown_mapping.py`

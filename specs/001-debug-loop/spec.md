@@ -130,7 +130,7 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - **FR-002**: System MUST 禁止插件直接寫入核心狀態與 long-memory。
 - **FR-003**: System MUST 透過統一 `TraceEvent` schema 管理所有插件輸入輸出。
 - **FR-004**: System MUST 以 `symbol file` 作為靜態/動態關聯主索引之一。
-- **FR-005**: System MUST 支援 TraceZone、UART(serialwrap)、GDB、eBPF collector（可降級）。
+- **FR-005**: System MUST 支援 TraceZone、UART(serialwrapd + serialwrap-mcp)、GDB、eBPF collector（可降級）。
 - **FR-006**: System MUST 支援 `CommandIntent -> provider adapter -> ExecResult` 單一命令語意流程。
 - **FR-007**: System MUST 實作 provider capability matrix 與健康檢查。
 - **FR-008**: System MUST 將 run 固化為可審計狀態機，含每次轉移原因。
@@ -158,10 +158,11 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 - **FR-030**: System MUST 排除影音素材處理、風格化、剪輯與音樂歌詞生成能力。
 - **FR-031**: System MUST 以 `ToolCard` 管理每個工具之 `description/examples/help/input/output/risk`。
 - **FR-032**: System MUST 提供 `idk tools list`、`idk tools show <tool_id>`、`idk tools doctor`。
-- **FR-033**: System MUST 透過 wrapper/adaptor 將異質工具介面正規化為統一 `ExecResult`。
+- **FR-033**: System MUST 透過 wrapper/adaptor（含 MCP provider 與 CLI fallback）將異質工具介面正規化為統一 `ExecResult`。
 - **FR-034**: System MUST 支援 busybox-link 風格的 alias 對應，同一意圖可映射到多工具。
 - **FR-035**: System MUST 讓既有 `hlapi_ingest`、`hlapi_discovery` 以同一命令註冊機制暴露。
 - **FR-036**: System MUST 提供工具介接治理狀態（healthy/degraded/blocked）並回報原因。
+- **FR-037**: System MUST 在 UART 介接流程遵守 `health -> list -> get_session_state(READY) -> submit -> tail_results`，並可輸出 raw/wal 證據鏈。
 
 ### Key Entities *(include if feature involves data)*
 
@@ -195,7 +196,8 @@ GUI 能播放 HLAPI->LLAPI->TraceZone flow 並下鑽節點；Obsidian 知識面�
 
 ## Assumptions
 
-- `serialwrap` 可直接使用。
+- `serialwrapd` 常駐可用，且可透過 `serialwrap-mcp` 讀寫 `READY` session。
+- 舊版 `~/.paul_tools/serialwrap` 僅作 fallback（legacy），不作主要介接路徑。
 - 可取得 TraceZone 與 target 基本控制介面。
 - 可提供初期 HLAPI/LLAPI 測試資料作為 baseline。
 

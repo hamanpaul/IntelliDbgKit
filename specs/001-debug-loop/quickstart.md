@@ -2,7 +2,7 @@
 
 ## 1) Prerequisites
 
-- Host: `python3`, `jq`, `git`, `serialwrap`, `gdb`, `bpftrace`
+- Host: `python3`, `jq`, `git`, `serialwrapd`, `serialwrap-mcp`, `gdb(optional)`, `bpftrace`
 - Target: `ubus-cli` + 可用 TraceZone
 - 測試資料: `docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx`
 
@@ -12,7 +12,37 @@
 export IDK_PROJECT="IntelliDbgKit"
 export IDK_VAULT="/path/to/obsidian_vault"
 export IDK_TARGET="board-01"
+export IDK_SERIAL_SELECTOR="COM0"
 ```
+
+## 2.1) Serialwrap-MCP Health and Session Readiness
+
+```bash
+/home/paul_chen/arc_prj/ser-dep/serialwrap daemon status
+/home/paul_chen/arc_prj/ser-dep/serialwrap-mcp --tool serialwrap_get_health --params '{}'
+/home/paul_chen/arc_prj/ser-dep/serialwrap-mcp --tool serialwrap_list_sessions --params '{}'
+/home/paul_chen/arc_prj/ser-dep/serialwrap-mcp --tool serialwrap_get_session_state --params "{\"selector\":\"$IDK_SERIAL_SELECTOR\"}"
+```
+
+Expected:
+
+- `serialwrapd` running = true
+- 目標 session state = `READY`
+
+## 2.2) UART Command Submit and Evidence Tail
+
+```bash
+/home/paul_chen/arc_prj/ser-dep/serialwrap-mcp --tool serialwrap_submit_command --params "{\"selector\":\"$IDK_SERIAL_SELECTOR\",\"cmd\":\"ubus-cli XPON.ONU.1.ANI.1.Enable=0\",\"source\":\"agent:trace\"}"
+/home/paul_chen/arc_prj/ser-dep/serialwrap-mcp --tool serialwrap_tail_results --params "{\"selector\":\"$IDK_SERIAL_SELECTOR\",\"from_seq\":0,\"limit\":200}"
+
+# raw/wal evidence
+/home/paul_chen/arc_prj/ser-dep/serialwrap log tail-raw --selector "$IDK_SERIAL_SELECTOR"
+/home/paul_chen/arc_prj/ser-dep/serialwrap wal export --selector "$IDK_SERIAL_SELECTOR"
+```
+
+Note:
+
+- `~/.paul_tools/serialwrap`（tmux/minicom model）視為 legacy fallback，不作主要流程。
 
 ## 3) Tool Catalog（Phase 1A 現況）
 

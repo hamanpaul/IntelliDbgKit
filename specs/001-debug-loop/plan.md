@@ -8,12 +8,12 @@
 重構目標為建立「簡潔核心不汙染」的除錯中樞，並把 trace 轉成長期知識資產。  
 本版以 PI Core 為核心，整合四層壓縮、雙條件記憶升級、技能化工作流、多 Agent 否決式收斂。  
 GUI/CLI 同步使用同一事件與證據模型，CI 僅輸出 evidence bundle 與 patch proposal。
-工具引入採 ToolCard 命令目錄（description/examples/help）與 wrapper 正規化，降低外部工具介接差異。
+工具引入採 ToolCard 命令目錄（description/examples/help）與 MCP adapter 正規化（CLI fallback），降低外部工具介接差異。
 
 ## Technical Context
 
 **Language/Version**: Python 3.12（core/orchestrator/plugins）、TypeScript（GUI）  
-**Primary Dependencies**: serialwrap, ubus-cli, gdb, bpftrace/libbpf, cscope/LSP backend, Copilot SDK  
+**Primary Dependencies**: serialwrapd, serialwrap-mcp, ubus-cli, gdb(optional), bpftrace/libbpf, cscope/LSP backend, Copilot SDK  
 **Storage**: Obsidian vault markdown + JSON index + JSONL raw events + Parquet aggregates  
 **Testing**: unittest + schema contract + replay consistency + compression round-trip tests  
 **Target Platform**: Host（Ubuntu/WSL）+ Target（prplOS/OpenWrt）  
@@ -181,7 +181,7 @@ mindmap
 | Root cause | 收斂與否決 | Analyzer 證據生成 | root-cause-flow | consensus card |
 | 記憶升級 | 雙條件判定 | Memory plugin 提交候選 | memory-promote-flow | long-memory note |
 | 修正建議 | 風險與政策檢查 | Analyzer/Actuator 產草案 | patch-proposal-flow | patch proposal |
-| 工具導引 | ToolCard 契約治理 | wrapper/help provider | tools-introspect-flow | tool catalog |
+| 工具導引 | ToolCard 契約治理 | MCP adapter/help provider（CLI fallback） | tools-introspect-flow | tool catalog |
 
 ## Project Structure
 
