@@ -5,3 +5,4 @@ __pycache__/
 
 # Local/private test artifact (do not commit company asset)
 docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx
+docs/map-gui.png
