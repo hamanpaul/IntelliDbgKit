@@ -2,3 +2,6 @@ tmp/
 
 __pycache__/
 *.pyc
+
+# Local/private test artifact (do not commit company asset)
+docs/6.3.0GA_prplware_v403_LLAPI_Test_Report.xlsx
