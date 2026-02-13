@@ -239,6 +239,91 @@
           "ASSERT_TRUE(swl_rc_isOk(rc), amxd_status_unknown_error, ME, \"fail to update radio stats\");"
         ]
       }
+    },
+    {
+      "path": "WiFi.SSID.{i}.Stats.MulticastPacketsSent",
+      "odl_file": "/home/paul_chen/arc_prj/BGW720-300-prpl-ebpf/userspace/public/libs/prpl_brcm/plugins/tr181-wifi/src/dm_action.c",
+      "odl_entry_line": 362,
+      "object_scope": "Stats",
+      "entry_function": "dm_get_stats",
+      "source_mapping": {
+        "compile_command_file": "userspace/public/libs/prpl_brcm/plugins/tr181-wifi/src/dm_action.c",
+        "compile_command_directory": "/home/paul_chen/arc_prj/BGW720-300-prpl-ebpf",
+        "source_file": "/home/paul_chen/arc_prj/BGW720-300-prpl-ebpf/userspace/public/libs/prpl_brcm/plugins/tr181-wifi/src/dm_action.c",
+        "source_entry_line": 362,
+        "source_function": "dm_get_stats"
+      },
+      "siblings": [
+        "BytesSent",
+        "BytesReceived",
+        "PacketsSent",
+        "PacketsReceived",
+        "ErrorsSent",
+        "ErrorsReceived",
+        "UnicastPacketsSent",
+        "UnicastPacketsReceived",
+        "DiscardPacketsSent",
+        "DiscardPacketsReceived",
+        "MulticastPacketsReceived",
+        "BroadcastPacketsSent",
+        "BroadcastPacketsReceived"
+      ],
+      "source_outline": [
+        {
+          "kind": "statement",
+          "text": "ret = mod_wifi_get_object_content(ubus_object_name, object_name, &pstats);"
+        },
+        {
+          "kind": "statement",
+          "text": "stats = amxd_object_get(object, \"Stats\");"
+        },
+        {
+          "kind": "statement",
+          "text": "dm_update_dynamicstats(stats, pstats);"
+        },
+        {
+          "kind": "statement",
+          "text": "function returns updated Stats including MulticastPacketsSent."
+        }
+      ],
+      "sibling_functions": [
+        {
+          "name": "mod_wifi_get_object_content",
+          "line": 251,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "formatubusData to model specific object path."
+            },
+            {
+              "kind": "statement",
+              "text": "call mod_hyd_get_param_values_tr181_obj() for object content."
+            }
+          ]
+        },
+        {
+          "name": "handle_get_object_content",
+          "line": 297,
+          "outline": [
+            {
+              "kind": "statement",
+              "text": "dispatch to backend get ops by module."
+            },
+            {
+              "kind": "statement",
+              "text": "wifi_bdk_get_object reads runtime counters."
+            }
+          ]
+        }
+      ],
+      "legacy_sample": {
+        "odl_entry": "WiFi.SSID.{i}.Stats read path via dm_get_stats",
+        "snippet": [
+          "ubus-cli WiFi.SSID.*.Stats.MulticastPacketsSent?",
+          "WiFi.SSID.4.Stats.MulticastPacketsSent=26774",
+          "/proc/net/dev_extstats: wl0=13390, wl0.1=13384"
+        ]
+      }
     }
   ]
 }
