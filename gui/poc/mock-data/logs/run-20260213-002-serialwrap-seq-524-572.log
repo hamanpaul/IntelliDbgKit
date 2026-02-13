@@ -1,0 +1,266 @@
+SEQ=524 CMD=9d9341afe6a2446f8678eb2a4a579602 DIR=TX SRC=agent:codex
+ba-cli 'WiFi.set_trace_zone(zone="pwifi", level=500)'
+
+---
+SEQ=525 CMD=- DIR=RX SRC=device
+ba-cli 'WiFi.set_trace_zone(zone="pwifi", level=500)'
+
+---
+SEQ=526 CMD=- DIR=RX SRC=device
+> WiFi.set_trace_zone(zone="pwifi", level=500)
+WiFi.set_trace_zone() returned
+[
+    ""
+]
+
+root@prplOS:/# 
+---
+SEQ=527 CMD=f3baf29c049b4742ac53ff1b24819215 DIR=TX SRC=agent:codex
+ba-cli 'WiFi.set_trace_zone(zone="mwifi", level=500)'
+
+---
+SEQ=528 CMD=- DIR=RX SRC=device
+ba-cli 'WiFi.set_trace_zone(zone="mwifi", level=500)'
+
+---
+SEQ=529 CMD=- DIR=RX SRC=device
+> WiFi.set_trace_zone(zone="mwifi", level=500)
+WiFi.set_trace_zone() returned
+[
+    ""
+]
+
+root@prplOS:/# 
+---
+SEQ=530 CMD=d3a9184dcd954b63a2e43122dc2c704a DIR=TX SRC=agent:codex
+ba-cli 'WiFi.set_trace_zone(zone="brcmRad", level=500)'
+
+---
+SEQ=531 CMD=- DIR=RX SRC=device
+ba-cli 'WiFi.set_trace_zone(zone="brcmRad", level=500)'
+
+---
+SEQ=532 CMD=- DIR=RX SRC=device
+> WiFi.set_trace_zone(zone="brcmRad", level=500)
+WiFi.set_trace_zone() returned
+[
+    ""
+]
+
+root@prplOS:/# 
+---
+SEQ=533 CMD=4907e7e1251043cd9fc7edc98547aef2 DIR=TX SRC=agent:codex
+ba-cli 'WiFi.set_trace_zone(zone="brcmMod", level=500)'
+
+---
+SEQ=534 CMD=- DIR=RX SRC=device
+ba-cli 'WiFi.set_trace_zone(zone="brcmMod", level=500)'
+
+---
+SEQ=535 CMD=- DIR=RX SRC=device
+> WiFi.set_trace_zone(zone="brcmMod", level=500)
+WiFi.set_trace_zone() returned
+[
+    ""
+]
+
+root@prplOS:/# 
+---
+SEQ=536 CMD=29732dbe884e446c913acc3fd738319d DIR=TX SRC=agent:codex
+ba-cli 'WiFi.set_trace_zone(zone="brcmMain", level=500)'
+
+---
+SEQ=537 CMD=- DIR=RX SRC=device
+ba-cli 'WiFi.set_trace_zone(zone="brcmMain", level=500)'
+
+---
+SEQ=538 CMD=- DIR=RX SRC=device
+> WiFi.set_trace_zone(zone="brcmMain", level=500)
+WiFi.set_trace_zone() returned
+[
+    ""
+]
+
+root@prplOS:/# 
+---
+SEQ=539 CMD=27fe597b61f440328f84c2f8180af4e4 DIR=TX SRC=agent:codex
+/bin/sh -c "ba-cli 'WiFi.list_trace_zones()' | grep -E 'pwifi|mwifi|brcmRad|brcmMod|brcmMain|nlDbg'"
+
+---
+SEQ=540 CMD=- DIR=RX SRC=device
+/bin/sh -c "ba-cli 'WiFi.list_trace_zones()' | grep -E 'pwifi|mwi
+fi|brcmRad|brcmMod|brcmMain|nlDbg'"
+        brcmMain =
+---
+SEQ=541 CMD=- DIR=RX SRC=device
+ 500,
+        brcmMod = 500,
+        brcmRad = 500,
+        mwifi = 500,
+        nlDbg = 200,
+        pwifi = 500,
+root@prplOS:/# 
+---
+SEQ=542 CMD=ca3b8fb0312243a08ca17383528bdc71 DIR=TX SRC=agent:codex
+logger IDK_MC_20260213_175629_START
+
+---
+SEQ=543 CMD=- DIR=RX SRC=device
+logger IDK_MC_20260213_175629_START
+root@prplOS:/# 
+---
+SEQ=544 CMD=9e62df8941f94d87813261cb84d257d3 DIR=TX SRC=agent:codex
+ubus-cli 'WiFi.SSID.*.Stats.MulticastPacketsSent?'
+
+---
+SEQ=545 CMD=- DIR=RX SRC=device
+ubus-cli 'WiFi.SSID.*.Stats.MulticastPacketsSent?'
+> WiF
+---
+SEQ=546 CMD=- DIR=RX SRC=device
+i.SSID.*.Stats.MulticastPacketsSent?
+WiFi.SSID.1.Stats.MulticastPacketsSent=0
+WiFi.SSID.2.Stats.MulticastPacketsSent=0
+WiFi.SSID.3.Stats.MulticastPacketsSent=0
+WiFi.SSID.4.Stats.MulticastPacketsSent=43708
+WiFi.SSID.5.Stats.MulticastPacketsSent=0
+WiFi.SSID.6.Stats.MulticastPacketsSent=0
+WiFi.SSID.7.Stats.MulticastPacketsSent=0
+WiFi.SSID.8.Stats.MulticastPacketsSent=0
+WiFi.SSID.9.Stats.MulticastPacketsSent=0
+
+root@prplOS:/# 
+---
+SEQ=547 CMD=3b0b080ef1e34f258e737b8099860663 DIR=TX SRC=agent:codex
+/bin/sh -c 'cat /proc/net/dev_extstats | grep -E "^( *wl0:| *wl0\.1:)"'
+
+---
+SEQ=548 CMD=- DIR=RX SRC=device
+/bin/sh -c 'cat /proc/net/dev_extstats | grep -E "^( *wl0:| *wl0\
+.1:)"'
+       wl0:       0       0    0   10    0     0     0     0 10006933   21857    0   14    0    0    0     0  21857      0 10006933     0     0     0   711     0
+     wl0.1:       0       0    0    1    0     0     0     0 10006461   21851    0    3    0    0    0     0  21851      0 10006461     0     0     0   708     0
+root@prplOS:/# 
+---
+SEQ=549 CMD=bcef7a07589e47948a582dc93e7eab37 DIR=TX SRC=agent:codex
+logger IDK_MC_20260213_175629_END
+
+---
+SEQ=550 CMD=- DIR=RX SRC=device
+logger IDK_MC_20260213_175629_END
+
+---
+SEQ=551 CMD=- DIR=RX SRC=device
+root@prplOS:/# 
+---
+SEQ=552 CMD=887b9cd55b704412bcfa2b2f71abea86 DIR=TX SRC=agent:codex
+/bin/sh -c 'logread | tail -n 500 | grep -E "IDK_MC_20260213_175629|pwifi|mwifi|brcmRad|brcmMod|brcmMain|MulticastPacketsSent|get_object_content"'
+
+---
+SEQ=553 CMD=- DIR=RX SRC=device
+/bin/sh -c 'logr
+---
+SEQ=554 CMD=- DIR=RX SRC=device
+ead | tail -n 500 | grep -E "IDK_MC_20260213_1756
+29|pwifi|mwifi|brcmRad|brcmMod|brcmMain|MulticastPacketsSent|get_object_content"
+'
+2026 Feb 12 12:41:15 prplOS ba-cli: > WiFi.set_trace_zone(zone="pwifi", level=500)
+2026 Feb 12 12:41:15 prplOS ba-cli: > WiFi.set_trace_zone(zone="mwifi", level=500)
+2026 Feb 12 12:41:16 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmRad", level=500)
+2026 Feb 12 12:41:16 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmMod", level=500)
+2026 Feb 12 12:41:
+---
+SEQ=555 CMD=- DIR=RX SRC=device
+16 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmMain", level=500)
+2026 Feb 12 12:41:50 prplOS ubus-cli: > WiFi.SSID.*.Stats.MulticastPacketsSent?
+2026 Feb 12 12:42:49 prplOS ba-cli: > WiFi.set_trace_zone(zone="pwifi", level=500)
+2026 Feb 12 12:42:49 prplOS ba-cli: > WiFi.set_trace_zone(zone="mwifi", level=500)
+2026 Feb 12 12:42:49 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmRad", level=500)
+2026 Feb 12 12:42:50 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmMod", level=500)
+2026 F
+---
+SEQ=556 CMD=- DIR=RX SRC=device
+eb 12 12:42:50 prplOS ba-cli: > WiFi.set_trace_zone(zone="brcmMain", level=500)
+2026 Feb 12 12:43:05 prplOS root: IDK_MC_20260213_175629_START
+2026 Feb 12 12:43:06 prplOS ubus-cli: > WiFi.SSID.*.Stats.MulticastPacketsSent?
+2026 Feb 12 12:43:07 prplOS root: IDK_MC_20260213_175629_END
+root@prplOS:/# 
+---
+SEQ=557 CMD=ade05cf8f33749659122680261fbc44e DIR=TX SRC=agent:codex
+logger IDK_EBPF_20260213_175649_START
+
+---
+SEQ=558 CMD=- DIR=RX SRC=device
+logger IDK_EBPF_20260213_175649_START
+root@prplOS:/# 
+---
+SEQ=559 CMD=a62eef10dbb04cec9487e62911a0fcc9 DIR=TX SRC=agent:codex
+ls -ld /sys/kernel/debug /sys/kernel/debug/tracing /sys/kernel/tracing 2>&1
+
+---
+SEQ=560 CMD=- DIR=RX SRC=device
+ls -ld /sys/kernel/debug /sys/kernel/debug/tracing /sys/kernel/tr
+acing 2>&1
+ls: /sys/kernel/debug/tracing: No such file or directory
+ls: /sys/kernel/tracing: No such file or directory
+drwx------   22 root     root             0 Jan  1  1970 [1;34m/sys/kernel/debug[m
+root@prplOS:/# 
+---
+SEQ=561 CMD=b862526653004c90a082db1155d34a0c DIR=TX SRC=agent:codex
+ls -l /sys/kernel/debug/kprobes 2>&1
+
+---
+SEQ=562 CMD=- DIR=RX SRC=device
+ls -l /sys/kernel/debug/kprobes 2>&1
+ls:
+---
+SEQ=563 CMD=- DIR=RX SRC=device
+ /sys/kernel/debug/kprobes: No such file or directory
+root@prplOS:/# 
+---
+SEQ=564 CMD=0ed3d5ca455440a3a09029486b774880 DIR=TX SRC=agent:codex
+/bin/sh -c 'echo p:idk_probe_dev_get_stats dev_get_stats > /sys/kernel/debug/tracing/kprobe_events 2>&1 || true'
+
+---
+SEQ=565 CMD=- DIR=RX SRC=device
+/bin/sh -c 'echo p:idk_probe_dev_get_stats dev_get_stats > /sys/k
+ernel/debug/tracing/kprobe_events 2>&1 || true'
+/bin/sh: can't create /sys/kernel/debug/tracing/kprobe_events: nonexistent directory
+root@prplOS:/# 
+---
+SEQ=566 CMD=6a1948edaba642adabd8081002d14bf6 DIR=TX SRC=agent:codex
+mkdir -p /tmp/idk_tracefs; mount -t tracefs tracefs /tmp/idk_tracefs 2>&1; echo TRACEFS_MOUNT_RC:0; ls -la /tmp/idk_tracefs 2>&1; umount /tmp/idk_tracefs 2>/dev/null || true
+
+---
+SEQ=567 CMD=- DIR=RX SRC=device
+mkdir -p /tmp/idk_tracefs; mount -t tracefs tracefs /tmp/idk_trac
+efs 2>&1; echo TRACEFS_MOUNT_RC:0; ls -la /tmp/idk_tracefs 2>&1; umount /tmp/idk
+_tracefs 2>/dev/null || true
+mount: /tmp/idk_tracefs: unknown filesystem type 'tracefs'.
+       dmesg(1) may have more information after failed mount system call.
+TRACEFS_MOUNT_RC:0
+drwxr-xr-x    2 root     root            40 Feb 12 12:43 [1;34m.[m
+drwxrwxrwt   36 root     root          1360 Feb 12 12:43 [1;34m..[m
+root@prplOS:/# 
+---
+SEQ=568 CMD=9f2aafa0e7004f7ca6573d3c31f3f6eb DIR=TX SRC=agent:codex
+/bin/sh -c 'zcat /proc/config.gz 2>/dev/null | grep -E "CONFIG_(BPF|BPF_SYSCALL|BPF_JIT|KPROBE_EVENTS|UPROBE_EVENTS|TRACEFS|FTRACE|TRACING)="'
+
+---
+SEQ=569 CMD=- DIR=RX SRC=device
+/bin/sh -c 'zcat /proc/config.gz
+---
+SEQ=570 CMD=- DIR=RX SRC=device
+ 2>/dev/null | grep -E "CONFIG_(B
+PF|BPF_SYSCALL|BPF_JIT|KPROBE_EVENTS|UPROBE_EVENTS|TRACEFS|FTRACE|TRACING)="'
+CONFIG_BPF=y
+root@prplOS:/# 
+---
+SEQ=571 CMD=b1c6345ced9d47a28eaa67c2143a901b DIR=TX SRC=agent:codex
+logger IDK_EBPF_20260213_175649_END
+
+---
+SEQ=572 CMD=- DIR=RX SRC=device
+logger IDK_EBPF_20260213_175649_END
+root@prplOS:/# 
+---

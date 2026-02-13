@@ -1,0 +1,14 @@
+# LSP Block Evidence (2026-02-13)
+
+Tool call:
+- mcp__lsp__start_server(language_id="c")
+
+Returned error:
+- Failed to start 'c' language server: Error: EACCES: permission denied, scandir '/home/paul_chen/arc_prj/att-prpl/targets/968375GWO_WL25DX_WLMLO_OPENWRT_PRPL_FASTMCASTD/fs/lib64/ssl/private'
+
+Follow-up:
+- mcp__lsp__start_server(language_id="c", project="BGW720-300-prpl-ebpf")
+- Response: Project 'BGW720-300-prpl-ebpf' not found in 'c' language server configuration.
+
+Decision:
+- This run falls back to source-path analysis by rg/compile_commands and serial runtime evidence.

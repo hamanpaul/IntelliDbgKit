@@ -1,6 +1,12 @@
 {
   "runs": [
     {
+      "run_id": "run-20260213-002",
+      "target_id": "board-prplos-COM0",
+      "started_at": "2026-02-13T09:56:29Z",
+      "status": "warn"
+    },
+    {
       "run_id": "run-20260213-001",
       "target_id": "board-prplos-COM0",
       "started_at": "2026-02-13T07:13:34Z",
