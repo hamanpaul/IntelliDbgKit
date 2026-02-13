@@ -248,6 +248,12 @@ body {
   background: #2d4761;
 }
 
+.mind-item-btn.flow-active {
+  border-color: #ffcc6a;
+  box-shadow: 0 0 0 1px rgba(255, 204, 106, 0.42) inset;
+  background: #3a4a5f;
+}
+
 .mind-item-text {
   display: block;
   border: 1px solid #3e556c;
@@ -264,6 +270,26 @@ body {
 .mind-block.root {
   border-color: #66d2ff;
   background: #24425f;
+}
+
+.mind-block.flow-entered {
+  border-color: #5fe3a1;
+  box-shadow: 0 0 0 2px rgba(95, 227, 161, 0.28);
+}
+
+.mind-block.flow-kept {
+  border-color: #66d2ff;
+  box-shadow: 0 0 0 2px rgba(102, 210, 255, 0.24);
+}
+
+.mind-block.flow-exited {
+  border-color: #ff7d7d;
+  box-shadow: 0 0 0 2px rgba(255, 125, 125, 0.2);
+  opacity: 0.9;
+}
+
+.mind-block.flow-idle {
+  opacity: 0.76;
 }
 
 .timeline {

@@ -92,6 +92,11 @@ function selectedEvent() {
   return state.timeline[state.activeIndex] || null;
 }
 
+function previousEvent() {
+  if (state.activeIndex <= 0) return null;
+  return state.timeline[state.activeIndex - 1] || null;
+}
+
 function selectedPathContext() {
   return (state.hlapiContext?.path_contexts || []).find((item) => item.path === state.selectedPath) || null;
 }
@@ -119,6 +124,53 @@ function createTextItem(id, label) {
 
 function createExpandItem(id, label, type, payload = {}) {
   return { id, label, type, payload, expandable: true };
+}
+
+function eventStepNo(eventId) {
+  const index = state.timeline.findIndex((event) => event.id === eventId);
+  return index >= 0 ? index + 1 : 0;
+}
+
+function formatEventTag(eventId) {
+  if (!eventId) return "-";
+  const step = eventStepNo(eventId);
+  if (!step) return eventId;
+  return `Step ${step} (${eventId})`;
+}
+
+function formatRuntimeFlowLabel(event) {
+  if (!event) return "Call Flow Focus (no active event)";
+  const prev = previousEvent();
+  const tag = formatEventTag(event.id);
+  if (!prev) return `Call Flow Focus: ${tag}`;
+  return `Call Flow Focus: ${tag} (from ${formatEventTag(prev.id)})`;
+}
+
+function formatNodeList(nodeIds = []) {
+  if (!nodeIds.length) return "(none)";
+  return nodeIds.map((nodeId) => nodeLabel(nodeId)).join(" -> ");
+}
+
+function buildBackboneFlowNodeIds() {
+  const ordered = [];
+  const seen = new Set();
+  state.timeline.forEach((event) => {
+    (event.flow || []).forEach((nodeId) => {
+      if (seen.has(nodeId)) return;
+      seen.add(nodeId);
+      ordered.push(nodeId);
+    });
+  });
+  return ordered;
+}
+
+function diffFlowNodes(prevNodeIds = [], currNodeIds = []) {
+  const prevSet = new Set(prevNodeIds);
+  const currSet = new Set(currNodeIds);
+  const entered = currNodeIds.filter((nodeId) => !prevSet.has(nodeId));
+  const exited = prevNodeIds.filter((nodeId) => !currSet.has(nodeId));
+  const kept = currNodeIds.filter((nodeId) => prevSet.has(nodeId));
+  return { entered, exited, kept };
 }
 
 function newNodeId() {
@@ -214,7 +266,7 @@ function renderTimeline() {
     const button = node.querySelector(".timeline-btn");
     node.querySelector(".time").textContent = `${event.time} / ${event.phase}`;
     node.querySelector(".title").textContent = event.title;
-    node.querySelector(".meta").textContent = `${event.tool} • ${event.id}`;
+    node.querySelector(".meta").textContent = `${event.tool} • ${formatEventTag(event.id)}`;
     button.addEventListener("click", () => setActive(index));
     if (index === state.activeIndex) button.classList.add("active");
     timelineEl.appendChild(node);
@@ -249,7 +301,7 @@ function buildRootNode() {
     items.push(createTextItem("no-sibling", "(no sibling HLAPI)"));
   }
 
-  items.push(createExpandItem("runtime-flow", "Runtime Flow (current event)", "runtime_flow"));
+  items.push(createExpandItem("runtime-flow", "Call Flow Focus (auto expanded)", "runtime_flow"));
 
   if (context?.entry_function) {
     items.push(createExpandItem(`odl-entry:${context.entry_function}`, `ODL Entry: ${context.entry_function}`, "odl_entry"));
@@ -406,7 +458,7 @@ function buildChildNode(parentNode, item) {
     const event = selectedEvent();
     if (!event) {
       return makeNode({
-        title: "Runtime Flow",
+        title: "Call Flow Focus",
         items: [createTextItem("runtime-none", "(no active event)")],
         parentId: parentNode.id,
         depth: parentNode.depth + 1,
@@ -414,24 +466,52 @@ function buildChildNode(parentNode, item) {
       });
     }
 
+    const prev = previousEvent();
+    const prevFlow = prev?.flow || [];
+    const currFlow = event.flow || [];
+    const diff = diffFlowNodes(prevFlow, currFlow);
+    const backbone = buildBackboneFlowNodeIds();
+
     const items = [
-      createTextItem("runtime-event", `Event: ${event.id}`),
+      createTextItem("runtime-event", `Event: ${formatEventTag(event.id)}`),
+      createTextItem("runtime-prev", `From: ${prev ? formatEventTag(prev.id) : "(start of run)"}`),
       createTextItem("runtime-phase", `Phase/Tool: ${event.phase} / ${event.tool}`)
     ];
 
-    event.flow.forEach((nodeId, index) => {
+    items.push(createTextItem("runtime-now", `Current Flow: ${formatNodeList(currFlow)}`));
+    items.push(createTextItem("runtime-diff-entered", `Transition + Entered: ${formatNodeList(diff.entered)}`));
+    items.push(createTextItem("runtime-diff-exited", `Transition - Exited: ${formatNodeList(diff.exited)}`));
+    items.push(createTextItem("runtime-diff-kept", `Transition = Kept: ${formatNodeList(diff.kept)}`));
+    items.push(createTextItem("runtime-guide", "Legend: + entered this step, - exited from previous, = continuous."));
+
+    if (backbone.length) {
+      const firstNodeId = backbone[0];
       items.push(
         createExpandItem(
-          `flow-node:${event.id}:${index}`,
-          `${nodeLabel(nodeId)} (${nodeId})`,
-          "flow_node",
-          { nodeId }
+          "flow-step:0",
+          `Step 1: ${nodeLabel(firstNodeId)} (${firstNodeId})`,
+          "flow_step",
+          {
+            backbone,
+            index: 0
+          }
         )
       );
+    }
+
+    items.push(createTextItem("backbone-title", `Backbone (${backbone.length} nodes):`));
+    backbone.forEach((nodeId, index) => {
+      const inCurr = currFlow.includes(nodeId);
+      const inPrev = prevFlow.includes(nodeId);
+      let marker = ".";
+      if (inCurr && inPrev) marker = "=";
+      else if (inCurr) marker = "+";
+      else if (inPrev) marker = "-";
+      items.push(createTextItem(`backbone-line:${event.id}:${index}`, `${marker} ${index + 1}. ${nodeLabel(nodeId)} (${nodeId})`));
     });
 
     return makeNode({
-      title: "Runtime Flow",
+      title: "Call Flow Focus",
       items,
       parentId: parentNode.id,
       depth: parentNode.depth + 1,
@@ -439,25 +519,52 @@ function buildChildNode(parentNode, item) {
     });
   }
 
-  if (item.type === "flow_node") {
-    const related = state.timeline.filter((event) => event.flow.includes(item.payload.nodeId));
+  if (item.type === "flow_step") {
+    const flow = item.payload?.backbone || [];
+    const index = Number(item.payload?.index || 0);
+    const nodeId = flow[index];
+    if (!nodeId) return null;
+
+    const prevNodeId = index > 0 ? flow[index - 1] : null;
+    const nextNodeId = index + 1 < flow.length ? flow[index + 1] : null;
+
+    const related = state.timeline
+      .filter((event) => (event.flow || []).includes(nodeId))
+      .map((event) => formatEventTag(event.id))
+      .join(", ");
+
     const items = [
-      createTextItem("flow-node-id", `Node: ${item.payload.nodeId}`),
-      createTextItem("flow-related", `RelatedEvents: ${related.length}`)
+      createTextItem("flow-step-node", `Node: ${nodeLabel(nodeId)} (${nodeId})`),
+      createTextItem("flow-step-marker", "Focus State: color highlight (entered/kept/exited)"),
+      createTextItem("flow-step-prev", `From Node: ${prevNodeId ? `${nodeLabel(prevNodeId)} (${prevNodeId})` : "(flow start)"}`),
+      createTextItem("flow-step-next", `To Node: ${nextNodeId ? `${nodeLabel(nextNodeId)} (${nextNodeId})` : "(flow end)"}`),
+      createTextItem("flow-step-related", `Seen In: ${related || "(none)"}`)
     ];
 
-    limitItems(
-      related.map((event) => `${event.time} ${event.id} ${event.tool}`),
-      8
-    ).forEach((line, index) => items.push(createTextItem(`flow-event:${index}`, line)));
+    if (nextNodeId) {
+      items.push(
+        createExpandItem(
+          `flow-step:${index + 1}`,
+          `Step ${index + 2}: ${nodeLabel(nextNodeId)} (${nextNodeId})`,
+          "flow_step",
+          {
+            backbone: flow,
+            index: index + 1
+          }
+        )
+      );
+    }
 
-    return makeNode({
-      title: `Flow Node: ${nodeLabel(item.payload.nodeId)}`,
+    const node = makeNode({
+      title: `Flow Step ${index + 1}`,
       items,
       parentId: parentNode.id,
       depth: parentNode.depth + 1,
-      kind: "flow-node"
+      kind: "flow-step"
     });
+    node.flowNodeId = nodeId;
+    node.stepIndex = index;
+    return node;
   }
 
   return null;
@@ -467,6 +574,30 @@ function initMindTree() {
   state.mind = newMindStore();
   const root = buildRootNode();
   state.mind.nodes.set(root.id, root);
+  updateRuntimeFlowItemLabel();
+  syncRuntimeFlowNode();
+}
+
+function updateRuntimeFlowItemLabel() {
+  const root = state.mind.nodes.get("root");
+  if (!root) return;
+  const runtimeItem = root.items.find((item) => item.id === "runtime-flow");
+  if (!runtimeItem) return;
+  runtimeItem.label = formatRuntimeFlowLabel(selectedEvent());
+}
+
+function ensureRuntimeFlowExpanded() {
+  const root = state.mind.nodes.get("root");
+  if (!root) return;
+  const runtimeItem = root.items.find((item) => item.id === "runtime-flow" && item.expandable);
+  if (!runtimeItem) return;
+  const runtimeLinkKey = itemLinkKey(root.id, runtimeItem.id);
+  if (state.mind.itemToChild.has(runtimeLinkKey)) return;
+  const runtimeNode = buildChildNode(root, runtimeItem);
+  if (!runtimeNode) return;
+  state.mind.nodes.set(runtimeNode.id, runtimeNode);
+  state.mind.itemToChild.set(runtimeLinkKey, runtimeNode.id);
+  state.mind.childToLink.set(runtimeNode.id, runtimeLinkKey);
 }
 
 function removeMindSubtree(nodeId) {
@@ -494,6 +625,7 @@ function toggleMindItem(parentId, itemId) {
   if (!parent) return;
   const item = parent.items.find((entry) => entry.id === itemId);
   if (!item || !item.expandable) return;
+  if (parentId === "root" && itemId === "runtime-flow") return;
 
   const linkKey = itemLinkKey(parentId, itemId);
   if (state.mind.itemToChild.has(linkKey)) {
@@ -517,12 +649,120 @@ function collapseNode(nodeId) {
   if (nodeId === "root") return;
   const linkKey = state.mind.childToLink.get(nodeId);
   if (!linkKey) return;
+  if (linkKey === itemLinkKey("root", "runtime-flow")) return;
   const childId = state.mind.itemToChild.get(linkKey);
   if (!childId) return;
   removeMindSubtree(childId);
   state.mind.itemToChild.delete(linkKey);
   state.mind.childToLink.delete(childId);
   drawGraph();
+}
+
+function syncRuntimeFlowNode() {
+  ensureRuntimeFlowExpanded();
+  const root = state.mind.nodes.get("root");
+  if (!root) return;
+  const runtimeItem = root.items.find((item) => item.id === "runtime-flow" && item.expandable);
+  if (!runtimeItem) return;
+
+  const runtimeLinkKey = itemLinkKey(root.id, runtimeItem.id);
+  const runtimeId = state.mind.itemToChild.get(runtimeLinkKey);
+  if (!runtimeId) return;
+
+  let chainParent = state.mind.nodes.get(runtimeId);
+  while (chainParent) {
+    const nextStepItem = chainParent.items.find((entry) => entry.expandable && entry.type === "flow_step");
+    if (!nextStepItem) break;
+
+    const chainKey = itemLinkKey(chainParent.id, nextStepItem.id);
+    if (state.mind.itemToChild.has(chainKey)) {
+      const childId = state.mind.itemToChild.get(chainKey);
+      chainParent = childId ? state.mind.nodes.get(childId) : null;
+      continue;
+    }
+
+    const child = buildChildNode(chainParent, nextStepItem);
+    if (!child) break;
+    state.mind.nodes.set(child.id, child);
+    state.mind.itemToChild.set(chainKey, child.id);
+    state.mind.childToLink.set(child.id, chainKey);
+    chainParent = child;
+  }
+}
+
+function applyRuntimeFlowLabelInPlace() {
+  const btn = graphEl.querySelector('button[data-parent-id="root"][data-mind-item="runtime-flow"]');
+  if (!btn) return;
+  const expanded = btn.classList.contains("expanded");
+  btn.textContent = `${expanded ? "▾" : "▸"} ${formatRuntimeFlowLabel(selectedEvent())}`;
+}
+
+function applyRuntimeSummaryInPlace() {
+  const runtimeBlock = graphEl.querySelector('.mind-block[data-kind="runtime"]');
+  if (!runtimeBlock) return;
+  const event = selectedEvent();
+  if (!event) return;
+  const prev = previousEvent();
+  const diff = diffFlowNodes(prev?.flow || [], event.flow || []);
+
+  const setItemText = (itemId, text) => {
+    const el = runtimeBlock.querySelector(`.mind-item-text[data-item-id="${itemId}"]`);
+    if (el) el.textContent = text;
+  };
+
+  setItemText("runtime-event", `Event: ${formatEventTag(event.id)}`);
+  setItemText("runtime-prev", `From: ${prev ? formatEventTag(prev.id) : "(start of run)"}`);
+  setItemText("runtime-phase", `Phase/Tool: ${event.phase} / ${event.tool}`);
+  setItemText("runtime-now", `Current Flow: ${formatNodeList(event.flow || [])}`);
+  setItemText("runtime-diff-entered", `Transition + Entered: ${formatNodeList(diff.entered)}`);
+  setItemText("runtime-diff-exited", `Transition - Exited: ${formatNodeList(diff.exited)}`);
+  setItemText("runtime-diff-kept", `Transition = Kept: ${formatNodeList(diff.kept)}`);
+
+  const backbone = buildBackboneFlowNodeIds();
+  const currSet = new Set(event.flow || []);
+  const prevSet = new Set(prev?.flow || []);
+  const lineEls = runtimeBlock.querySelectorAll('.mind-item-text[data-item-id^="backbone-line:"]');
+  lineEls.forEach((el, index) => {
+    const nodeId = backbone[index];
+    if (!nodeId) return;
+    const inCurr = currSet.has(nodeId);
+    const inPrev = prevSet.has(nodeId);
+    let marker = ".";
+    if (inCurr && inPrev) marker = "=";
+    else if (inCurr) marker = "+";
+    else if (inPrev) marker = "-";
+    el.textContent = `${marker} ${index + 1}. ${nodeLabel(nodeId)} (${nodeId})`;
+  });
+}
+
+function applyFlowFocusClasses() {
+  const event = selectedEvent();
+  const prev = previousEvent();
+  const currSet = new Set(event?.flow || []);
+  const prevSet = new Set(prev?.flow || []);
+  const blocks = graphEl.querySelectorAll(".mind-block[data-flow-node-id]");
+
+  blocks.forEach((block) => {
+    const nodeId = block.dataset.flowNodeId || "";
+    const inCurr = currSet.has(nodeId);
+    const inPrev = prevSet.has(nodeId);
+    block.classList.remove("flow-entered", "flow-kept", "flow-exited", "flow-idle");
+    if (inCurr && inPrev) {
+      block.classList.add("flow-kept");
+    } else if (inCurr) {
+      block.classList.add("flow-entered");
+    } else if (inPrev) {
+      block.classList.add("flow-exited");
+    } else {
+      block.classList.add("flow-idle");
+    }
+  });
+}
+
+function refreshFlowViewInPlace() {
+  applyRuntimeFlowLabelInPlace();
+  applyRuntimeSummaryInPlace();
+  applyFlowFocusClasses();
 }
 
 function layoutMindNodes() {
@@ -748,6 +988,10 @@ function drawGraph() {
     const block = document.createElement("section");
     block.className = `mind-block ${node.kind === "root" ? "root" : ""}`;
     block.dataset.nodeId = node.id;
+    block.dataset.kind = node.kind;
+    if (node.flowNodeId) {
+      block.dataset.flowNodeId = node.flowNodeId;
+    }
     block.style.left = `${node.layout.x}px`;
     block.style.top = `${node.layout.y}px`;
     block.style.height = `${node.layout.h}px`;
@@ -757,7 +1001,7 @@ function drawGraph() {
     const title = document.createElement("h3");
     title.textContent = node.title;
     header.appendChild(title);
-    if (node.id !== "root") {
+    if (node.id !== "root" && node.kind !== "runtime") {
       const closeBtn = document.createElement("button");
       closeBtn.type = "button";
       closeBtn.className = "mind-collapse-btn";
@@ -773,16 +1017,20 @@ function drawGraph() {
       if (item.expandable) {
         const key = itemLinkKey(node.id, item.id);
         const expanded = state.mind.itemToChild.has(key);
+        const event = selectedEvent();
+        const isRuntimeFlowRootItem = item.type === "runtime_flow" && !!event;
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = `mind-item-btn${expanded ? " expanded" : ""}`;
+        btn.className = `mind-item-btn${expanded ? " expanded" : ""}${isRuntimeFlowRootItem ? " flow-active" : ""}`;
         btn.dataset.parentId = node.id;
         btn.dataset.mindItem = item.id;
+        btn.dataset.itemId = item.id;
         btn.textContent = `${expanded ? "▾" : "▸"} ${item.label}`;
         row.appendChild(btn);
       } else {
         const span = document.createElement("span");
         span.className = "mind-item-text";
+        span.dataset.itemId = item.id;
         span.textContent = item.label;
         row.appendChild(span);
       }
@@ -812,6 +1060,7 @@ function drawGraph() {
     // 第二輪：等瀏覽器完成 reflow/repaint 後再校正一次，減少首次展開錯位。
     drawMindEdges(board, svg);
   });
+  refreshFlowViewInPlace();
 }
 
 function hasOverlapWithOthers(nodeId, x, y, w, h) {
@@ -938,6 +1187,9 @@ async function renderEventDetails() {
   }
 
   const detail = await api.getEventDetail(state.runId, event.id);
+  const eventTag = formatEventTag(detail.id);
+  const prev = previousEvent();
+  const diff = diffFlowNodes(prev?.flow || [], detail.flow || []);
   detailsEl.innerHTML = `
     <div>${statusBadge(detail.status)}${consensusBadge(detail.consensus)}</div>
     <div>${runBadge(state.runs.find((run) => run.run_id === state.runId)?.status || "unknown")}</div>
@@ -945,7 +1197,7 @@ async function renderEventDetails() {
     <div><b>Target</b> <span class="mono">${escapeHtml(state.runMeta.target_id)}</span></div>
     <div><b>Summary</b> ${escapeHtml(state.runMeta.summary || "")}</div>
     <hr>
-    <div><b>Event</b> <span class="mono">${escapeHtml(detail.id)}</span></div>
+    <div><b>Event</b> <span class="mono">${escapeHtml(eventTag)}</span></div>
     <div><b>Time</b> ${escapeHtml(detail.time)}</div>
     <div><b>Tool</b> ${escapeHtml(detail.tool)}</div>
     <div><b>Title</b> ${escapeHtml(detail.title)}</div>
@@ -953,6 +1205,10 @@ async function renderEventDetails() {
     <div><b>Address</b> <span class="mono">${escapeHtml(detail.address)}</span></div>
     <div><b>Evidence</b> <span class="mono">${escapeHtml((detail.evidence || []).join(", "))}</span></div>
     <div><b>Flow</b> <span class="mono">${escapeHtml((detail.flow || []).join(" -> "))}</span></div>
+    <div><b>From</b> <span class="mono">${escapeHtml(prev ? formatEventTag(prev.id) : "(start of run)")}</span></div>
+    <div><b>Transition +</b> <span class="mono">${escapeHtml(formatNodeList(diff.entered))}</span></div>
+    <div><b>Transition -</b> <span class="mono">${escapeHtml(formatNodeList(diff.exited))}</span></div>
+    <div><b>Transition =</b> <span class="mono">${escapeHtml(formatNodeList(diff.kept))}</span></div>
   `;
 }
 
@@ -969,7 +1225,7 @@ async function renderNodeDetails(nodeId) {
     <hr>
     <div class="mono">
       ${detail.relatedEvents
-        .map((event) => `${escapeHtml(event.time)} ${escapeHtml(event.id)} ${escapeHtml(event.tool)} ${escapeHtml(event.consensus)}`)
+        .map((event) => `${escapeHtml(event.time)} ${escapeHtml(formatEventTag(event.id))} ${escapeHtml(event.tool)} ${escapeHtml(event.consensus)}`)
         .join("<br>")}
     </div>
   `;
@@ -985,14 +1241,18 @@ function updateHint() {
     hintEl.textContent = `HLAPI: ${state.selectedPath || "-"} / no active event`;
     return;
   }
-  hintEl.textContent = `HLAPI: ${state.selectedPath || "-"} / ${event.id} / ${event.phase}`;
+  const prev = previousEvent();
+  const from = prev ? ` / from ${formatEventTag(prev.id)}` : "";
+  hintEl.textContent = `HLAPI: ${state.selectedPath || "-"} / ${formatEventTag(event.id)} / ${event.phase}${from}`;
 }
 
 async function setActive(index) {
   if (!state.timeline.length) {
     state.activeIndex = 0;
+    state.activeEventId = "";
+    updateRuntimeFlowItemLabel();
     renderTimeline();
-    drawGraph();
+    refreshFlowViewInPlace();
     updateStats();
     updateHint();
     await renderEventDetails();
@@ -1001,8 +1261,9 @@ async function setActive(index) {
 
   state.activeIndex = Math.max(0, Math.min(index, state.timeline.length - 1));
   state.activeEventId = state.timeline[state.activeIndex].id;
+  updateRuntimeFlowItemLabel();
   renderTimeline();
-  drawGraph();
+  refreshFlowViewInPlace();
   updateStats();
   updateHint();
   await renderEventDetails();
@@ -1046,6 +1307,18 @@ async function loadRun(runId) {
   stopNodeDrag();
   state.runId = runId;
   state.runMeta = await api.getRun(runId);
+  {
+    const paths = state.hlapiContext?.path_contexts || [];
+    const runDefaultPath = state.runMeta?.default_path || "";
+    const hasRunDefaultPath = runDefaultPath && paths.some((item) => item.path === runDefaultPath);
+    const hasSelectedPath = state.selectedPath && paths.some((item) => item.path === state.selectedPath);
+    if (hasRunDefaultPath) {
+      state.selectedPath = runDefaultPath;
+    } else if (!hasSelectedPath) {
+      state.selectedPath = paths[0]?.path || "";
+    }
+  }
+  renderPathOptions();
   state.graph = await api.getGraph(runId);
   state.activeIndex = 0;
   state.activeEventId = "";

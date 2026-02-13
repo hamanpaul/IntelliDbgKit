@@ -13,7 +13,7 @@ make ui-poc
 
 - Run 切換（`runs.json`）
 - HLAPI Path 切換（`path_contexts`）
-- Core block flow mind-list（可折疊階層、父子連線）
+- Core block flow mind-list（固定骨架 + Focus 鏈 + 父子連線）
 - 點 list item（如 `ModesSupported`）可展開新 block，再點一次收折
 - 每個 block 可由標題列拖曳自由定位
 - 拖曳時自動避免 block 互相重疊
@@ -29,7 +29,15 @@ make ui-poc
 - `gui/poc/mock-data/runs.json`
 - `gui/poc/mock-data/run-20260210-001.json`
 - `gui/poc/mock-data/run-20260210-002.json`
+- `gui/poc/mock-data/run-20260213-001.json`
+- `gui/poc/mock-data/run-20260213-001-evidence.md`
 - `gui/poc/mock-data/hlapi-context.json`
+
+## Known Issues
+
+- 目前 `Call Flow Focus` 已有 `From/Transition(+/-/=)` 與固定骨架，但「跨 step 因果」仍是推論式呈現，對第一次看的使用者可讀性仍不足。
+- 目前只有節點層級 (`event.flow`) 的前後差異，沒有顯式「邊/觸發條件」資料（例如 `Step1 -> Step2` 的實際 trigger），所以仍可能看起來像片段切換。
+- 後續要補強：引入明確 transition event schema（who/why/edge），用顯式因果鏈取代純節點差分顯示。
 
 ## Mock API 對應
 
