@@ -31,6 +31,11 @@ make ui-poc
 - `gui/poc/mock-data/run-20260210-002.json`
 - `gui/poc/mock-data/run-20260213-001.json`
 - `gui/poc/mock-data/run-20260213-001-evidence.md`
+- `gui/poc/mock-data/run-20260213-002.json`
+- `gui/poc/mock-data/run-20260213-002-evidence.md`
+- `gui/poc/mock-data/logs/run-20260213-002-serialwrap-seq-524-572.log`
+- `gui/poc/mock-data/logs/run-20260213-002-lsp-block.log`
+- `gui/poc/mock-data/logs/run-20260213-002-devtools-dom-check.log`
 - `gui/poc/mock-data/hlapi-context.json`
 
 ## Known Issues
